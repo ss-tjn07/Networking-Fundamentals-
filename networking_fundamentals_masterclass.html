@@ -1,0 +1,2571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Networking Fundamentals | Interactive Classroom Dashboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti for quiz rewards -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          },
+          colors: {
+            cyber: {
+              dark: '#070b14',
+              card: '#0f172a',
+              cardborder: '#1e293b',
+              neonCyan: '#06b6d4',
+              neonPurple: '#a855f7',
+              neonGreen: '#10b981',
+              neonAmber: '#f59e0b',
+              neonRose: '#f43f5e'
+            }
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'flow-beam': 'flowBeam 3s linear infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', filter: 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.4))' },
+              '50%': { opacity: '0.9', filter: 'drop-shadow(0 0 16px rgba(168, 85, 247, 0.7))' }
+            },
+            flowBeam: {
+              '0%': { strokeDashoffset: '100' },
+              '100%': { strokeDashoffset: '0' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #070b14;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    /* Custom Cyber Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070b14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+    .neon-border-cyan {
+      box-shadow: 0 0 15px -3px rgba(6, 182, 212, 0.25);
+    }
+    .neon-border-purple {
+      box-shadow: 0 0 15px -3px rgba(168, 85, 247, 0.25);
+    }
+    .neon-border-emerald {
+      box-shadow: 0 0 15px -3px rgba(16, 185, 129, 0.25);
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(30, 41, 59, 0.5) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+    .packet-glow {
+      filter: drop-shadow(0 0 6px #06b6d4);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-50 bg-[#070b14]/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <i data-lucide="network" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-sm md:text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-300 to-emerald-400">
+          NETWORKING FUNDAMENTALS <span class="text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-800/60 px-1.5 py-0.5 rounded ml-1">LIVE LAB</span>
+        </h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Interactive Visual Classroom & Simulator</p>
+      </div>
+    </div>
+
+    <!-- Mode & Navigation Controls -->
+    <div class="flex items-center gap-2">
+      <!-- Presentation Mode Toggle -->
+      <button id="toggleViewModeBtn" onclick="togglePresentationMode()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 border border-slate-700 hover:border-cyan-500 text-slate-200 transition-all">
+        <i data-lucide="presentation" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span id="viewModeLabel">Classroom Mode</span>
+      </button>
+
+      <!-- Quick Index Drawer Toggle -->
+      <button onclick="toggleDrawer()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 border border-slate-700 hover:border-purple-500 text-slate-200 transition-all">
+        <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
+        <span>Syllabus (9 Topics)</span>
+      </button>
+
+      <!-- Slides Navigation (for presentation mode) -->
+      <div id="slideNavControls" class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+        <button onclick="prevSlide()" title="Previous Topic [Left Arrow]" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        </button>
+        <span id="slideCounter" class="text-xs font-mono px-2 text-cyan-400 font-semibold">01 / 09</span>
+        <button onclick="nextSlide()" title="Next Topic [Right Arrow]" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- DRAWER / TABLE OF CONTENTS MODAL -->
+  <div id="drawerBackdrop" onclick="toggleDrawer()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden transition-opacity"></div>
+  <aside id="topicDrawer" class="fixed right-0 top-0 bottom-0 z-50 w-80 md:w-96 bg-[#0a101f] border-l border-slate-800 p-5 shadow-2xl translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
+          <h2 class="font-bold text-sm tracking-wide text-white">CURRICULUM TOPICS</h2>
+        </div>
+        <button onclick="toggleDrawer()" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <nav class="mt-4 space-y-1.5 overflow-y-auto max-h-[calc(100vh-160px)] pr-1" id="drawerMenuList">
+        <!-- populated by JS -->
+      </nav>
+    </div>
+
+    <div class="pt-4 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+      <span>Use <kbd class="bg-slate-800 text-slate-300 px-1 py-0.5 rounded border border-slate-700">←</kbd> <kbd class="bg-slate-800 text-slate-300 px-1 py-0.5 rounded border border-slate-700">→</kbd> to browse slides</span>
+      <span class="text-cyan-400 font-mono">v2.4 Live</span>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="flex-1 flex flex-col max-w-7xl w-full mx-auto p-3 md:p-6 space-y-6">
+
+    <!-- TOPIC SUB-HEADER / PROGRESS TRACKER -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 backdrop-blur-sm">
+      <div class="flex items-center gap-3">
+        <span id="topicBadge" class="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">TOPIC 01</span>
+        <div>
+          <h2 id="currentTopicTitle" class="text-lg md:text-xl font-extrabold text-white">Introduction to Networking</h2>
+          <p id="currentTopicSubtitle" class="text-xs text-slate-400">The foundational architecture of connected computing</p>
+        </div>
+      </div>
+      
+      <!-- Quick presenter notes toggle -->
+      <div class="flex items-center gap-2">
+        <button onclick="togglePresenterNotes()" class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 rounded-lg text-xs text-purple-300 transition-colors">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span>Teacher Explainer</span>
+        </button>
+        <button onclick="runQuickQuiz()" class="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-700/60 rounded-lg text-xs text-cyan-300 transition-colors">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>Check Understanding</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TEACHER EXPLAINER BANNER (COLLAPSIBLE) -->
+    <div id="presenterNotesBox" class="hidden bg-purple-950/30 border border-purple-800/50 rounded-xl p-4 text-xs md:text-sm text-purple-200">
+      <div class="flex items-start gap-2">
+        <i data-lucide="message-square" class="w-4 h-4 text-purple-400 shrink-0 mt-0.5"></i>
+        <div class="space-y-1">
+          <span class="font-bold text-purple-300 uppercase tracking-wider text-[11px]">Instructor Talking Points & Real-World Analogies:</span>
+          <p id="presenterNotesText" class="text-purple-200/90 leading-relaxed">
+            Think of a network like an postal courier system. Without rules (protocols), addresses (IP/MAC), and couriers (routers/switches), packages (data packets) would collide or get lost in transit.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC SECTION CONTAINER: CONTENT CHANGES WITH SLIDES/NAVIGATION -->
+    <div id="contentViewport" class="min-h-[560px] flex flex-col justify-start">
+      <!-- Rendered dynamically by topic engine -->
+    </div>
+
+    <!-- CLASSROOM INTERACTIVE BOTTOM BAR -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80 text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>Interactive Sandbox Active</span>
+        <span class="text-slate-600">|</span>
+        <span id="statusMessage">Click nodes or adjust controls to test packet flows.</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="prevSlide()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+          &larr; Previous Topic
+        </button>
+        <button onclick="nextSlide()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition shadow-lg shadow-cyan-600/20">
+          Next Topic &rarr;
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- POPUP / QUIZ MODAL -->
+  <div id="quizModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-cyan-500/40 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative neon-border-cyan animate-in fade-in zoom-in duration-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+          </span>
+          <h3 class="font-bold text-white text-base">Quick Knowledge Check</h3>
+        </div>
+        <button onclick="closeQuizModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div class="mt-4 space-y-4">
+        <p id="quizQuestion" class="text-sm font-medium text-slate-200 leading-relaxed"></p>
+        <div id="quizOptions" class="space-y-2">
+          <!-- Options injected dynamically -->
+        </div>
+        <div id="quizFeedback" class="hidden p-3 rounded-lg text-xs font-mono"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & SIMULATION ENGINES -->
+  <script>
+    // -------------------------------------------------------------
+    // TOPIC DEFINITIONS & METADATA
+    // -------------------------------------------------------------
+    const topics = [
+      {
+        id: 'intro',
+        title: 'Introduction to Networking',
+        subtitle: 'Foundations: Nodes, Transmission Media, Protocols, and Data Flow',
+        badge: 'TOPIC 01',
+        icon: 'network',
+        notes: 'Emphasize that a network is simply two or more computing nodes sharing resources over a transmission medium governed by mutually understood protocols. Point out the difference between Client-Server vs Peer-to-Peer models.'
+      },
+      {
+        id: 'hardware',
+        title: 'Hardware: NIC, Hub, Switch, Router & Modem',
+        subtitle: 'L1 to L3 Devices & The Collision vs Broadcast Domain comparison',
+        badge: 'TOPIC 02',
+        icon: 'cpu',
+        notes: 'Key teaching point: Hubs are dumb repeaters (1 collision domain, 1 broadcast domain). Switches are smart Layer 2 devices learning MAC addresses (split collision domains). Routers connect different subnets/networks (Layer 3, breaks broadcast domains).'
+      },
+      {
+        id: 'scope',
+        title: 'Network Scope: LAN vs MAN vs WAN',
+        subtitle: 'Geographical Scale, Ownership, Latency & Transmission Infrastructure',
+        badge: 'TOPIC 03',
+        icon: 'globe',
+        notes: 'Compare LAN (home/office, high speed 10Gbps, private), MAN (metropolitan citywide fiber, cable TV systems, campus loops), and WAN (global internet, telecomm carriers, high latency, undersea cables).'
+      },
+      {
+        id: 'topologies',
+        title: 'Network Topologies',
+        subtitle: 'Star, Bus, Ring, Mesh, Tree & Hybrid - Interactive Fault & Traffic Simulator',
+        badge: 'TOPIC 04',
+        icon: 'git-fork',
+        notes: 'Interactive exercise: Ask students why Star is preferred in modern offices (single point failure is only switch, easily isolatable) while Mesh is standard for ISP backbones despite its high $O(n^2)$ cable cost.'
+      },
+      {
+        id: 'osi-tcpip',
+        title: 'OSI 7-Layer vs TCP/IP 4-Layer Model',
+        subtitle: 'Layer mapping and Step-by-Step Packet Encapsulation & Decapsulation',
+        badge: 'TOPIC 05',
+        icon: 'layers',
+        notes: 'Mnemonic: "Please Do Not Throw Sausage Pizza Away" (Physical, Data Link, Network, Transport, Session, Presentation, Application). Demonstrate header prepending (encapsulation) going down, and header stripping going up.'
+      },
+      {
+        id: 'ipv4-ipv6',
+        title: 'IPv4 vs IPv6 Architecture',
+        subtitle: '32-Bit vs 128-Bit Addressing, Address Depletion, Header Simplicity & Binary Explorer',
+        badge: 'TOPIC 06',
+        icon: 'binary',
+        notes: '4.29 billion vs 3.4 x 10^38 addresses (enough to assign an IP to every grain of sand on Earth). Explain why IPv6 eliminated NAT necessity, checksum overheads, and integrated mandatory IPSec capability.'
+      },
+      {
+        id: 'dhcp-dora',
+        title: 'Static IP vs Dynamic IP (DHCP & DORA)',
+        subtitle: 'Interactive Packet Handshake: Discover, Offer, Request, Acknowledge',
+        badge: 'TOPIC 07',
+        icon: 'repeat',
+        notes: 'Explain DORA: Broadcast Discover (Who is the DHCP server?), Unicast/Broadcast Offer (Take this IP), Broadcast Request (I choose your IP), Unicast ACK (You own this lease for X hours).'
+      },
+      {
+        id: 'classes',
+        title: 'IPv4 Address Classes (A, B, C, D, E)',
+        subtitle: 'Leading bits, Default Subnet Masks, Network vs Host IDs, and Live Calculator',
+        badge: 'TOPIC 08',
+        icon: 'calculator',
+        notes: 'Remind students of class boundaries: Class A (1-126), Class B (128-191), Class C (192-223), Class D Multicast (224-239), Class E Experimental (240-254). Point out 127.0.0.1 is reserved for loopback.'
+      },
+      {
+        id: 'ports-protocols',
+        title: 'Common Ports & Core Protocols',
+        subtitle: 'HTTP/S, DNS, SSH, FTP, SMTP, SNMP with interactive 3-Way Handshake & DNS Resolver',
+        badge: 'TOPIC 09',
+        icon: 'shield-check',
+        notes: 'Ports act like apartment numbers in a high-rise building (IP is the building street address). Explain why well-known ports are 0-1023, registered 1024-49151, and dynamic 49152-65535.'
+      }
+    ];
+
+    let currentSlideIndex = 0;
+    let presentationMode = false;
+    let simInterval = null;
+
+    // -------------------------------------------------------------
+    // INITIALIZATION & EVENT LISTENERS
+    // -------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      buildDrawerMenu();
+      loadTopic(0);
+      lucide.createIcons();
+
+      // Keyboard navigation for presentation
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevSlide();
+        }
+      });
+    });
+
+    function buildDrawerMenu() {
+      const container = document.getElementById('drawerMenuList');
+      container.innerHTML = topics.map((t, idx) => `
+        <button onclick="jumpToTopic(${idx})" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between text-xs transition-colors ${
+          idx === currentSlideIndex 
+            ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30' 
+            : 'text-slate-300 hover:bg-slate-800/60'
+        }">
+          <div class="flex items-center gap-2.5 truncate">
+            <span class="font-mono text-[10px] text-cyan-400 font-bold">0${idx+1}</span>
+            <span class="truncate font-medium">${t.title}</span>
+          </div>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 opacity-40 shrink-0"></i>
+        </button>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function toggleDrawer() {
+      const drawer = document.getElementById('topicDrawer');
+      const backdrop = document.getElementById('drawerBackdrop');
+      const isClosed = drawer.classList.contains('translate-x-full');
+      if (isClosed) {
+        drawer.classList.remove('translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        drawer.classList.add('translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    function togglePresentationMode() {
+      presentationMode = !presentationMode;
+      const label = document.getElementById('viewModeLabel');
+      if (presentationMode) {
+        label.textContent = "Exit Classroom";
+        document.body.classList.add('presentation-active');
+        setStatus("Classroom Presentation mode enabled. Use arrow keys to step through.");
+      } else {
+        label.textContent = "Classroom Mode";
+        document.body.classList.remove('presentation-active');
+        setStatus("Explorer / Lab sandbox mode active.");
+      }
+    }
+
+    function togglePresenterNotes() {
+      const box = document.getElementById('presenterNotesBox');
+      box.classList.toggle('hidden');
+    }
+
+    function setStatus(msg) {
+      document.getElementById('statusMessage').textContent = msg;
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        loadTopic(currentSlideIndex - 1);
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < topics.length - 1) {
+        loadTopic(currentSlideIndex + 1);
+      }
+    }
+
+    function jumpToTopic(index) {
+      loadTopic(index);
+      toggleDrawer();
+    }
+
+    function loadTopic(index) {
+      if (simInterval) clearInterval(simInterval);
+      currentSlideIndex = index;
+      const t = topics[index];
+
+      // Update Header Data
+      document.getElementById('slideCounter').textContent = `0${index + 1} / 09`;
+      document.getElementById('topicBadge').textContent = t.badge;
+      document.getElementById('currentTopicTitle').textContent = t.title;
+      document.getElementById('currentTopicSubtitle').textContent = t.subtitle;
+      document.getElementById('presenterNotesText').textContent = t.notes;
+
+      buildDrawerMenu();
+
+      // Render Specific Content View
+      const viewport = document.getElementById('contentViewport');
+      viewport.innerHTML = '';
+
+      switch(t.id) {
+        case 'intro':
+          renderIntro(viewport);
+          break;
+        case 'hardware':
+          renderHardware(viewport);
+          break;
+        case 'scope':
+          renderScope(viewport);
+          break;
+        case 'topologies':
+          renderTopologies(viewport);
+          break;
+        case 'osi-tcpip':
+          renderOsiTcp(viewport);
+          break;
+        case 'ipv4-ipv6':
+          renderIpv4Ipv6(viewport);
+          break;
+        case 'dhcp-dora':
+          renderDhcpDora(viewport);
+          break;
+        case 'classes':
+          renderClasses(viewport);
+          break;
+        case 'ports-protocols':
+          renderPortsProtocols(viewport);
+          break;
+      }
+      lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 01: INTRODUCTION TO NETWORKING
+    // -------------------------------------------------------------
+    function renderIntro(container) {
+      container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Left side: Core concepts -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg">
+              <h3 class="text-base font-bold text-cyan-300 flex items-center gap-2">
+                <i data-lucide="radio" class="w-4 h-4 text-cyan-400"></i> What is a Computer Network?
+              </h3>
+              <p class="text-xs text-slate-300 mt-2 leading-relaxed">
+                A computer network is an interconnected group of autonomous computing devices (<strong>nodes</strong>) capable of exchanging information and sharing computational resources using standardized communication channels (<strong>links</strong>) and formal rule sets (<strong>protocols</strong>).
+              </p>
+              
+              <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
+                  <span class="text-cyan-400 font-semibold block">Nodes</span>
+                  <span class="text-slate-400 text-[11px]">Computers, Servers, IoT devices, Mobile phones, Routers.</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
+                  <span class="text-purple-400 font-semibold block">Transmission Links</span>
+                  <span class="text-slate-400 text-[11px]">Copper (Cat6), Optical Fiber, Wireless (Wi-Fi, 5G, Sat).</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
+                  <span class="text-emerald-400 font-semibold block">Protocols</span>
+                  <span class="text-slate-400 text-[11px]">Rules of syntax & semantics: TCP/IP, Ethernet, HTTP, ARP.</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60">
+                  <span class="text-amber-400 font-semibold block">Resource Sharing</span>
+                  <span class="text-slate-400 text-[11px]">Files, Web services, Printers, APIs, Compute clusters.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Architecture Comparison Card -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5">
+              <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Architectural Models</h4>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="p-3 rounded-lg border border-cyan-800/40 bg-cyan-950/20">
+                  <div class="font-bold text-cyan-300 flex items-center gap-1.5 mb-1">
+                    <i data-lucide="server" class="w-3.5 h-3.5"></i> Client-Server
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-normal">
+                    Centralized server controls resources; clients request data (Web, Email, Databases). Easy to secure, single point of bottleneck.
+                  </p>
+                </div>
+                <div class="p-3 rounded-lg border border-purple-800/40 bg-purple-950/20">
+                  <div class="font-bold text-purple-300 flex items-center gap-1.5 mb-1">
+                    <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Peer-to-Peer (P2P)
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-normal">
+                    Every node acts as both client and server (BitTorrent, Blockchain). Highly fault-tolerant, decentralized, hard to govern.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right side: Interactive Transmission Sandbox -->
+          <div class="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-xl p-5 flex flex-col justify-between grid-bg relative overflow-hidden">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div>
+                  <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i data-lucide="play-circle" class="w-4 h-4 text-cyan-400"></i> Interactive Data Packet Transmission Demo
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Transmit a chunk of data across physical media to see packetization.</p>
+                </div>
+                <button onclick="startIntroTransmission()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-1.5">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i> Send "Hello World"
+                </button>
+              </div>
+
+              <!-- Visual Canvas/Animation Area -->
+              <div class="py-8 relative flex items-center justify-between px-4 sm:px-12 my-6">
+                <!-- Node A (Sender) -->
+                <div class="flex flex-col items-center z-10">
+                  <div id="senderNode" class="w-16 h-16 rounded-2xl bg-cyan-950 border-2 border-cyan-500 flex flex-col items-center justify-center shadow-lg shadow-cyan-500/30 transition-transform">
+                    <i data-lucide="laptop" class="w-8 h-8 text-cyan-400"></i>
+                    <span class="text-[9px] font-mono font-bold text-cyan-300 mt-0.5">NODE A</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-400 mt-1">192.168.1.10</span>
+                </div>
+
+                <!-- Connecting Medium Pipeline -->
+                <div class="flex-1 relative mx-4 h-3 bg-slate-800 rounded-full overflow-hidden flex items-center border border-slate-700">
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent w-full"></div>
+                  <!-- Animated Packet in Transmission -->
+                  <div id="introPacket" class="absolute w-8 h-4 rounded bg-gradient-to-r from-cyan-400 to-purple-500 text-[8px] font-mono text-black font-extrabold flex items-center justify-center shadow-md shadow-cyan-400/80 -translate-x-20 transition-all duration-1000 ease-in-out opacity-0">
+                    PKT
+                  </div>
+                </div>
+
+                <!-- Node B (Receiver) -->
+                <div class="flex flex-col items-center z-10">
+                  <div id="receiverNode" class="w-16 h-16 rounded-2xl bg-slate-900 border-2 border-slate-700 flex flex-col items-center justify-center shadow-lg transition-transform">
+                    <i data-lucide="server" class="w-8 h-8 text-purple-400"></i>
+                    <span class="text-[9px] font-mono font-bold text-purple-300 mt-0.5">NODE B</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-400 mt-1">192.168.1.20</span>
+                </div>
+              </div>
+
+              <!-- Terminal Telemetry Log -->
+              <div class="bg-black/80 rounded-xl p-3 border border-slate-800 font-mono text-[11px] text-slate-300 space-y-1 h-36 overflow-y-auto" id="introLog">
+                <div class="text-slate-500">// Terminal packet logger initialized. Ready for transmission.</div>
+                <div class="text-cyan-400/80">&gt; Transmission medium: Unshielded Twisted Pair (Cat6 Copper). Bandwidth: 1 Gbps.</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between items-center">
+              <span>Bit Stream: <code class="text-cyan-400 font-mono">01001000 01100101 01101100 01101100 01101111</code></span>
+              <span class="text-slate-500">Latency: ~2ms</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function startIntroTransmission() {
+      const packet = document.getElementById('introPacket');
+      const sender = document.getElementById('senderNode');
+      const receiver = document.getElementById('receiverNode');
+      const log = document.getElementById('introLog');
+
+      sender.classList.add('scale-105', 'border-white');
+      receiver.classList.remove('border-purple-400', 'shadow-purple-500/50');
+
+      log.innerHTML += `<div class="text-amber-400">&gt; [Node A] Encapsulating payload: "Hello World" into IP Datagram...</div>`;
+      log.scrollTop = log.scrollHeight;
+
+      // Animate Packet
+      packet.style.transition = 'none';
+      packet.style.left = '5%';
+      packet.style.opacity = '1';
+
+      setTimeout(() => {
+        packet.style.transition = 'left 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+        packet.style.left = '85%';
+        log.innerHTML += `<div class="text-cyan-400">&gt; [Medium] Signal serialized into electromagnetic pulses. In flight...</div>`;
+        log.scrollTop = log.scrollHeight;
+      }, 50);
+
+      setTimeout(() => {
+        sender.classList.remove('scale-105', 'border-white');
+        receiver.classList.add('border-purple-400', 'shadow-purple-500/50', 'scale-105');
+        packet.style.opacity = '0';
+        log.innerHTML += `<div class="text-emerald-400">&gt; [Node B] Frame received! CRC Checksum: OK. Decapsulating payload: "Hello World"</div>`;
+        log.scrollTop = log.scrollHeight;
+        setStatus("Data successfully transferred and acknowledged.");
+      }, 1300);
+
+      setTimeout(() => {
+        receiver.classList.remove('scale-105');
+      }, 2000);
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 02: NETWORK HARDWARE (NIC, HUB, SWITCH, ROUTER, MODEM)
+    // -------------------------------------------------------------
+    function renderHardware(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Hardware Card Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <!-- NIC -->
+            <div class="bg-slate-900 border border-slate-800 hover:border-cyan-500/60 transition p-3.5 rounded-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-cyan-400 font-bold bg-cyan-950 px-2 py-0.5 rounded">LAYER 1 & 2</span>
+                  <i data-lucide="credit-card" class="w-4 h-4 text-cyan-400"></i>
+                </div>
+                <h4 class="font-bold text-sm text-white mt-2">NIC (Network Card)</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Hardware component connecting a PC to the physical network medium.</p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-800 text-[10px] text-slate-300 font-mono">
+                Hardcoded 48-bit MAC address: <code class="text-cyan-300">00:1A:2B:3C:4D:5E</code>
+              </div>
+            </div>
+
+            <!-- HUB -->
+            <div class="bg-slate-900 border border-slate-800 hover:border-amber-500/60 transition p-3.5 rounded-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-amber-400 font-bold bg-amber-950 px-2 py-0.5 rounded">LAYER 1 (PHYSICAL)</span>
+                  <i data-lucide="radio" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <h4 class="font-bold text-sm text-white mt-2">Network Hub</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Dumb repeater. Blindly broadcasts incoming packets out of <strong>ALL</strong> other ports.</p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-800 text-[10px] text-amber-300/80 font-mono">
+                1 Collision Domain<br>High collision risk & low security
+              </div>
+            </div>
+
+            <!-- SWITCH -->
+            <div class="bg-slate-900 border border-slate-800 hover:border-purple-500/60 transition p-3.5 rounded-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-purple-400 font-bold bg-purple-950 px-2 py-0.5 rounded">LAYER 2 (DATA LINK)</span>
+                  <i data-lucide="boxes" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <h4 class="font-bold text-sm text-white mt-2">Network Switch</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Intelligent bridge. Builds a dynamic <strong>MAC Table</strong> to forward frames only to destination port.</p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-800 text-[10px] text-purple-300 font-mono">
+                Splits Collision Domains<br>Unicast micro-segmentation
+              </div>
+            </div>
+
+            <!-- ROUTER -->
+            <div class="bg-slate-900 border border-slate-800 hover:border-emerald-500/60 transition p-3.5 rounded-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950 px-2 py-0.5 rounded">LAYER 3 (NETWORK)</span>
+                  <i data-lucide="compass" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <h4 class="font-bold text-sm text-white mt-2">Router</h4>
+                <p class="text-[11px] text-slate-400 mt-1">Inspects destination <strong>IP addresses</strong> to route packets between different subnets/WANs.</p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-800 text-[10px] text-emerald-300 font-mono">
+                Breaks Broadcast Domains<br>Determines Best Path (OSPF/BGP)
+              </div>
+            </div>
+
+            <!-- MODEM -->
+            <div class="bg-slate-900 border border-slate-800 hover:border-rose-500/60 transition p-3.5 rounded-xl flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-mono text-rose-400 font-bold bg-rose-950 px-2 py-0.5 rounded">SIGNAL CONVERTER</span>
+                  <i data-lucide="activity" class="w-4 h-4 text-rose-400"></i>
+                </div>
+                <h4 class="font-bold text-sm text-white mt-2">Modem (MO-DEM)</h4>
+                <p class="text-[11px] text-slate-400 mt-1"><strong>MO</strong>dulator-<strong>DEM</strong>odulator. Converts digital binary PC pulses to analog ISP waves (DSL/Fiber/Cable).</p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-slate-800 text-[10px] text-rose-300 font-mono">
+                Digital &harr; Analog Translation<br>Last-mile ISP bridge
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Hardware Simulator: HUB vs SWITCH vs ROUTER -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 grid-bg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div>
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                  <i data-lucide="cpu" class="w-5 h-5 text-cyan-400"></i>
+                  Interactive Traffic Flow Simulator: Hub vs Switch vs Router
+                </h3>
+                <p class="text-xs text-slate-400">Simulate sending a packet from Host 1 to Host 3 under different intermediate devices.</p>
+              </div>
+
+              <!-- Device Selector -->
+              <div class="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button onclick="setHardwareMode('hub')" id="hwBtn-hub" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Hub (L1 Broadcast)</button>
+                <button onclick="setHardwareMode('switch')" id="hwBtn-switch" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white shadow-md shadow-cyan-600/30 transition">Switch (L2 Smart Unicast)</button>
+                <button onclick="setHardwareMode('router')" id="hwBtn-router" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Router (L3 Subnet Gateway)</button>
+              </div>
+            </div>
+
+            <!-- Visualization Canvas -->
+            <div class="relative py-12 flex flex-col items-center">
+              <!-- Central Device Icon -->
+              <div id="centralDevice" class="w-24 h-24 rounded-2xl bg-cyan-950/80 border-2 border-cyan-400 flex flex-col items-center justify-center z-20 shadow-xl shadow-cyan-500/20 transition-all">
+                <i id="centralDeviceIcon" data-lucide="boxes" class="w-10 h-10 text-cyan-300"></i>
+                <span id="centralDeviceLabel" class="text-xs font-bold text-cyan-200 mt-1 font-mono">SWITCH</span>
+                <span id="centralDeviceSub" class="text-[9px] text-cyan-400 font-mono">MAC Filtered</span>
+              </div>
+
+              <!-- 4 Surrounding Hosts -->
+              <div class="w-full max-w-2xl grid grid-cols-4 gap-4 mt-12 z-10">
+                <!-- Host 1 (Sender) -->
+                <div class="flex flex-col items-center text-center">
+                  <div id="host1" class="w-14 h-14 rounded-xl bg-slate-800 border-2 border-cyan-500 flex items-center justify-center text-cyan-400 font-mono font-bold text-xs shadow-md">
+                    PC 1
+                  </div>
+                  <span class="text-[11px] font-bold text-cyan-400 mt-1">Sender</span>
+                  <span class="text-[9px] font-mono text-slate-500">Port 1 (MAC: AA)</span>
+                </div>
+
+                <!-- Host 2 -->
+                <div class="flex flex-col items-center text-center">
+                  <div id="host2" class="w-14 h-14 rounded-xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 font-mono font-bold text-xs">
+                    PC 2
+                  </div>
+                  <span class="text-[11px] text-slate-400 mt-1">Idle Node</span>
+                  <span class="text-[9px] font-mono text-slate-500">Port 2 (MAC: BB)</span>
+                </div>
+
+                <!-- Host 3 (Intended Target) -->
+                <div class="flex flex-col items-center text-center">
+                  <div id="host3" class="w-14 h-14 rounded-xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 font-mono font-bold text-xs">
+                    PC 3
+                  </div>
+                  <span class="text-[11px] font-bold text-purple-400 mt-1">Target</span>
+                  <span class="text-[9px] font-mono text-slate-500">Port 3 (MAC: CC)</span>
+                </div>
+
+                <!-- Host 4 -->
+                <div class="flex flex-col items-center text-center">
+                  <div id="host4" class="w-14 h-14 rounded-xl bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 font-mono font-bold text-xs">
+                    PC 4
+                  </div>
+                  <span class="text-[11px] text-slate-400 mt-1">Idle Node</span>
+                  <span class="text-[9px] font-mono text-slate-500">Port 4 (MAC: DD)</span>
+                </div>
+              </div>
+
+              <!-- Animated Packet Dots (Simulated) -->
+              <div id="hwPacketContainer" class="absolute inset-0 pointer-events-none">
+                <!-- Injected during animation -->
+              </div>
+            </div>
+
+            <!-- Action & Log Bar -->
+            <div class="mt-4 flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800">
+              <div class="text-xs text-slate-300 font-mono" id="hwExplanation">
+                <strong>Current Mode: Switch</strong> — Inspects incoming frame's Destination MAC (Host 3). Transmits solely out of Port 3; Ports 2 and 4 experience zero collision noise.
+              </div>
+              <button onclick="triggerHardwareTransmission()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2 shrink-0">
+                <i data-lucide="play" class="w-4 h-4"></i> Dispatch Frame (Host 1 &rarr; Host 3)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    let currentHwMode = 'switch';
+    function setHardwareMode(mode) {
+      currentHwMode = mode;
+      const hubBtn = document.getElementById('hwBtn-hub');
+      const swBtn = document.getElementById('hwBtn-switch');
+      const rtBtn = document.getElementById('hwBtn-router');
+      const central = document.getElementById('centralDevice');
+      const centralIcon = document.getElementById('centralDeviceIcon');
+      const centralLabel = document.getElementById('centralDeviceLabel');
+      const centralSub = document.getElementById('centralDeviceSub');
+      const expl = document.getElementById('hwExplanation');
+
+      [hubBtn, swBtn, rtBtn].forEach(b => {
+        b.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      });
+
+      if (mode === 'hub') {
+        hubBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-white shadow-md shadow-amber-600/30 transition";
+        central.className = "w-24 h-24 rounded-2xl bg-amber-950/80 border-2 border-amber-400 flex flex-col items-center justify-center z-20 shadow-xl shadow-amber-500/20";
+        centralIcon.setAttribute('data-lucide', 'radio');
+        centralLabel.textContent = "HUB (L1)";
+        centralSub.textContent = "Blind Broadcast";
+        expl.innerHTML = "<strong>Mode: Hub (Repeater)</strong> — Replicates raw electrical signal to EVERY connected port. Host 2 and Host 4 receive unwanted traffic, creating security hazards and collisions.";
+      } else if (mode === 'switch') {
+        swBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white shadow-md shadow-cyan-600/30 transition";
+        central.className = "w-24 h-24 rounded-2xl bg-cyan-950/80 border-2 border-cyan-400 flex flex-col items-center justify-center z-20 shadow-xl shadow-cyan-500/20";
+        centralIcon.setAttribute('data-lucide', 'boxes');
+        centralLabel.textContent = "SWITCH (L2)";
+        centralSub.textContent = "MAC Unicast";
+        expl.innerHTML = "<strong>Mode: Switch</strong> — Reads Destination MAC (CC). Forwards packet solely along Port 3. Eliminates collision domains for Host 2 & 4.";
+      } else {
+        rtBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow-md shadow-emerald-600/30 transition";
+        central.className = "w-24 h-24 rounded-2xl bg-emerald-950/80 border-2 border-emerald-400 flex flex-col items-center justify-center z-20 shadow-xl shadow-emerald-500/20";
+        centralIcon.setAttribute('data-lucide', 'compass');
+        centralLabel.textContent = "ROUTER (L3)";
+        centralSub.textContent = "IP Forwarding";
+        expl.innerHTML = "<strong>Mode: Router</strong> — Decapsulates frame, verifies IP routing table, decrements TTL, re-encapsulates frame, and sends to target subnet.";
+      }
+      lucide.createIcons();
+    }
+
+    function triggerHardwareTransmission() {
+      const h1 = document.getElementById('host1');
+      const h2 = document.getElementById('host2');
+      const h3 = document.getElementById('host3');
+      const h4 = document.getElementById('host4');
+
+      [h1, h2, h3, h4].forEach(h => {
+        h.classList.remove('border-emerald-400', 'border-amber-400', 'border-red-500', 'shadow-emerald-500/50', 'shadow-amber-500/50');
+      });
+
+      h1.classList.add('border-cyan-400', 'scale-110');
+      setStatus("Packet leaving Host 1 towards " + currentHwMode.toUpperCase() + "...");
+
+      setTimeout(() => {
+        h1.classList.remove('scale-110');
+        if (currentHwMode === 'hub') {
+          // Hub floods to 2, 3, 4!
+          h2.classList.add('border-amber-400', 'shadow-amber-500/50');
+          h3.classList.add('border-emerald-400', 'shadow-emerald-500/50');
+          h4.classList.add('border-amber-400', 'shadow-amber-500/50');
+          setStatus("HUB FLOODED: Host 2 and Host 4 discarded irrelevant packet; Host 3 accepted.");
+        } else if (currentHwMode === 'switch') {
+          // Switch unicasts only to 3
+          h3.classList.add('border-emerald-400', 'shadow-emerald-500/50', 'scale-110');
+          setStatus("SWITCH UNICAST: Clean delivery to Host 3 only via Port 3 MAC mapping.");
+        } else {
+          // Router routing
+          h3.classList.add('border-emerald-400', 'shadow-emerald-500/50', 'scale-110');
+          setStatus("ROUTER ROUTED: Subnet traversal validated. Next hop IP delivered.");
+        }
+      }, 700);
+
+      setTimeout(() => {
+        h3.classList.remove('scale-110');
+      }, 1600);
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 03: NETWORK SCOPE: LAN, MAN, WAN
+    // -------------------------------------------------------------
+    function renderScope(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Comparative Metric Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- LAN -->
+            <div class="bg-slate-900 border-2 border-cyan-500/50 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
+              <div class="absolute -top-12 -right-12 w-28 h-28 bg-cyan-500/10 rounded-full blur-xl pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded">LOCAL</span>
+                  <i data-lucide="home" class="w-5 h-5 text-cyan-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-2">LAN (Local Area Network)</h3>
+                <p class="text-xs text-slate-300 mt-1">Single room, home, school computer lab, or corporate office building.</p>
+                
+                <div class="mt-4 space-y-2 text-xs">
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Coverage:</span>
+                    <span class="font-mono text-cyan-300">&lt; 1 Kilometer</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Bandwidth:</span>
+                    <span class="font-mono text-cyan-300">1 Gbps - 100 Gbps</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Latency:</span>
+                    <span class="font-mono text-emerald-400">&lt; 1 - 2 ms (Extremely low)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Ownership:</span>
+                    <span class="text-slate-200">Privately Owned</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-cyan-400 font-mono">
+                Tech: Wi-Fi 6/7 (802.11ax/be), Cat6 Ethernet
+              </div>
+            </div>
+
+            <!-- MAN -->
+            <div class="bg-slate-900 border-2 border-purple-500/50 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
+              <div class="absolute -top-12 -right-12 w-28 h-28 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-purple-400 bg-purple-950 px-2 py-0.5 rounded">METROPOLITAN</span>
+                  <i data-lucide="building-2" class="w-5 h-5 text-purple-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-2">MAN (Metropolitan Area)</h3>
+                <p class="text-xs text-slate-300 mt-1">Spans an entire city, municipality, university campus cluster, or cable TV network.</p>
+                
+                <div class="mt-4 space-y-2 text-xs">
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Coverage:</span>
+                    <span class="font-mono text-purple-300">5 - 50 Kilometers</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Bandwidth:</span>
+                    <span class="font-mono text-purple-300">100 Mbps - 10 Gbps</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Latency:</span>
+                    <span class="font-mono text-purple-400">5 - 15 ms (Moderate)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Ownership:</span>
+                    <span class="text-slate-200">Consortium / City / Telecom</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-purple-400 font-mono">
+                Tech: Metro Ethernet, Dark Fiber Rings, DWDM
+              </div>
+            </div>
+
+            <!-- WAN -->
+            <div class="bg-slate-900 border-2 border-emerald-500/50 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
+              <div class="absolute -top-12 -right-12 w-28 h-28 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded">WIDE / GLOBAL</span>
+                  <i data-lucide="globe-2" class="w-5 h-5 text-emerald-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-2">WAN (Wide Area Network)</h3>
+                <p class="text-xs text-slate-300 mt-1">Cross-country and trans-continental networks. The Global Internet is the supreme WAN.</p>
+                
+                <div class="mt-4 space-y-2 text-xs">
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Coverage:</span>
+                    <span class="font-mono text-emerald-300">Worldwide (100,000+ km)</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Bandwidth:</span>
+                    <span class="font-mono text-emerald-300">Variable (ISP Throttled)</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Latency:</span>
+                    <span class="font-mono text-amber-400">30 - 250+ ms (Propagation delays)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Ownership:</span>
+                    <span class="text-slate-200">Multiple Tier-1 Carriers</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-emerald-400 font-mono">
+                Tech: Undersea Submarine Cables, Satellites, MPLS
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Scale Comparison Visualizer -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+            <h4 class="font-bold text-white text-sm mb-4 flex items-center gap-2">
+              <i data-lucide="zoom-in" class="w-4 h-4 text-cyan-400"></i> Nested Hierarchy Visualizer (LAN inside MAN inside WAN)
+            </h4>
+
+            <div class="relative bg-slate-950 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-around gap-6">
+              <!-- WAN Bubble -->
+              <div class="border-2 border-dashed border-emerald-500/60 bg-emerald-950/20 rounded-2xl p-6 w-full max-w-sm text-center">
+                <span class="text-xs font-mono font-bold text-emerald-300 bg-emerald-950 border border-emerald-700 px-3 py-1 rounded-full">
+                  WAN: Global Internet Backbone
+                </span>
+                
+                <!-- Inside MAN Bubble -->
+                <div class="mt-4 border-2 border-dashed border-purple-500/60 bg-purple-950/30 rounded-xl p-4 text-center">
+                  <span class="text-xs font-mono font-bold text-purple-300 bg-purple-950 border border-purple-700 px-2 py-0.5 rounded-full">
+                    MAN: City Metro Loop
+                  </span>
+
+                  <!-- Inside LAN Bubble -->
+                  <div class="mt-4 border-2 border-cyan-500 bg-cyan-950/40 rounded-lg p-3 text-center">
+                    <span class="text-[11px] font-mono font-bold text-cyan-300">
+                      LAN: Your Office / Campus
+                    </span>
+                    <div class="flex justify-center gap-2 mt-2">
+                      <i data-lucide="laptop" class="w-4 h-4 text-cyan-300"></i>
+                      <i data-lucide="printer" class="w-4 h-4 text-cyan-300"></i>
+                      <i data-lucide="smartphone" class="w-4 h-4 text-cyan-300"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick comparison table for students -->
+              <div class="w-full max-w-md text-xs space-y-3">
+                <h5 class="font-bold text-slate-200">Exam Cheat Sheet Differences:</h5>
+                <ul class="space-y-2 text-slate-300">
+                  <li class="flex items-start gap-2">
+                    <i data-lucide="check" class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5"></i>
+                    <span><strong>Fault Tolerance:</strong> LAN has the lowest complexity; WAN uses dynamic routing (BGP) to bypass broken undersea cables.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <i data-lucide="check" class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5"></i>
+                    <span><strong>Error Rates:</strong> LAN has virtually zero noise errors; WAN experiences packet loss and jitter across cross-continental hops.</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <i data-lucide="check" class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5"></i>
+                    <span><strong>PAN (Personal Area Network):</strong> Don't forget PAN! Bluetooth devices around 1 person within 10 meters (AirPods, Smartwatch).</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 04: NETWORK TOPOLOGIES (INTERACTIVE PACKET FLOW)
+    // -------------------------------------------------------------
+    function renderTopologies(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Topology Selector Nav -->
+          <div class="flex flex-wrap items-center gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800">
+            <span class="text-xs font-mono text-slate-400 font-bold px-2">TOPOLOGIES:</span>
+            <button onclick="switchTopology('star')" id="topBtn-star" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white shadow">Star</button>
+            <button onclick="switchTopology('bus')" id="topBtn-bus" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">Bus</button>
+            <button onclick="switchTopology('ring')" id="topBtn-ring" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">Ring</button>
+            <button onclick="switchTopology('mesh')" id="topBtn-mesh" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">Full Mesh</button>
+            <button onclick="switchTopology('tree')" id="topBtn-tree" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">Tree (Hierarchical)</button>
+            <button onclick="switchTopology('hybrid')" id="topBtn-hybrid" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white">Hybrid (Star-Ring)</button>
+          </div>
+
+          <!-- Topologies Simulator Canvas -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-8 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 grid-bg flex flex-col justify-between relative">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span id="activeTopBadge" class="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded">STAR TOPOLOGY</span>
+                  <span class="text-xs text-slate-400">Click "Simulate Traffic" or toggle "Break Central Link"</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="toggleCableBreak()" id="breakLinkBtn" class="px-3 py-1 rounded-lg text-xs font-semibold bg-rose-950/80 border border-rose-800 text-rose-300 hover:bg-rose-900 transition flex items-center gap-1.5">
+                    <i data-lucide="scissors" class="w-3.5 h-3.5"></i> <span id="breakBtnText">Break Central Node</span>
+                  </button>
+                  <button onclick="simulateTopologyTraffic()" class="px-4 py-1 rounded-lg text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-black transition flex items-center gap-1.5">
+                    <i data-lucide="play" class="w-3.5 h-3.5"></i> Simulate Traffic
+                  </button>
+                </div>
+              </div>
+
+              <!-- SVG Topology Graph Canvas -->
+              <div class="relative w-full h-80 flex items-center justify-center my-4 overflow-hidden" id="topoGraphContainer">
+                <svg id="topoCanvas" class="w-full h-full" viewBox="0 0 600 320">
+                  <!-- Dynamically drawn topology SVG paths & nodes -->
+                </svg>
+              </div>
+
+              <div class="pt-3 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+                <span id="topoTrafficStatus" class="text-emerald-400 font-mono">Status: All links operational.</span>
+                <span class="text-slate-500 text-[11px]">Green: Healthy | Red: Broken | Pulsing: Packet transit</span>
+              </div>
+            </div>
+
+            <!-- Topology Theory & Pros/Cons Panel -->
+            <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <h4 id="topoInfoTitle" class="text-base font-bold text-white">Star Topology</h4>
+                <p id="topoInfoDesc" class="text-xs text-slate-300 mt-2 leading-relaxed">
+                  Every peripheral node connects to a central switch or hub. It is the dominant topology used in modern homes, universities, and enterprise LANs.
+                </p>
+
+                <div class="mt-4 space-y-3">
+                  <div class="p-3 rounded-lg bg-emerald-950/20 border border-emerald-800/40">
+                    <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                      <i data-lucide="check" class="w-3.5 h-3.5"></i> Advantages:
+                    </span>
+                    <p id="topoPros" class="text-[11px] text-slate-300 mt-1">
+                      Single cable cut only disconnects that one device. Easy to troubleshoot, isolate, and add new computers without downtime.
+                    </p>
+                  </div>
+
+                  <div class="p-3 rounded-lg bg-rose-950/20 border border-rose-800/40">
+                    <span class="text-xs font-bold text-rose-400 flex items-center gap-1">
+                      <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Disadvantages:
+                    </span>
+                    <p id="topoCons" class="text-[11px] text-slate-300 mt-1">
+                      If the central switch fails, the entire network drops. Requires more total cable length than a bus topology.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] font-mono text-slate-400 flex justify-between">
+                <span>Cabling formula: <span id="topoFormula" class="text-cyan-400 font-bold">O(N) cables</span></span>
+                <span>Failure Risk: <span id="topoRisk" class="text-amber-400 font-bold">Central Switch</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      switchTopology('star');
+    }
+
+    let currentTopo = 'star';
+    let isLinkBroken = false;
+
+    const topoMeta = {
+      star: {
+        title: 'Star Topology',
+        badge: 'STAR TOPOLOGY',
+        desc: 'All peripheral devices link directly to a central hub/switch via point-to-point connections. Dominant LAN standard worldwide.',
+        pros: 'Failure of one cable leaves the rest intact. Plug-and-play expansion without network halt.',
+        cons: 'Central device is a single point of failure (SPOF). High cabling consumption.',
+        formula: 'N cables',
+        risk: 'Central Switch',
+        breakLabel: 'Break Central Switch'
+      },
+      bus: {
+        title: 'Bus Topology',
+        badge: 'BUS TOPOLOGY',
+        desc: 'Single shared backbone cable (coaxial trunk) with terminators at both ends. T-connectors tap nodes into the common bus.',
+        pros: 'Minimal cable needed. Cheap and simple for very small legacy networks.',
+        cons: 'A single break in the main backbone halts the entire network! Signal reflection if terminators fail. Prone to data collisions.',
+        formula: '1 Backbone + N Drop Cables',
+        risk: 'Backbone Cut / Terminators',
+        breakLabel: 'Cut Backbone Cable'
+      },
+      ring: {
+        title: 'Ring Topology',
+        badge: 'RING TOPOLOGY',
+        desc: 'Nodes connected in a closed circular loop. Packets travel unidirectionally (or bidirectional in dual-ring like FDDI) via token passing.',
+        pros: 'Deterministic traffic flow. No data packet collisions due to token passing.',
+        cons: 'One broken node or cut cable severs the ring loop for everyone unless an expensive dual-counter-rotating ring is deployed.',
+        formula: 'N cables',
+        risk: 'Any Single Link Break',
+        breakLabel: 'Break Ring Link'
+      },
+      mesh: {
+        title: 'Full Mesh Topology',
+        badge: 'FULL MESH TOPOLOGY',
+        desc: 'Every single node has a dedicated point-to-point physical link to every other node in the network. Used in mission-critical telecom cores.',
+        pros: 'Ultimate redundancy and fault tolerance. Simultaneous parallel traffic without bottlenecks or interference.',
+        cons: 'Massive exponential cabling costs: N*(N-1)/2 cables. Port count explosion on network cards.',
+        formula: 'N*(N-1)/2 cables',
+        risk: 'Extremely Low',
+        breakLabel: 'Sever Link A-B'
+      },
+      tree: {
+        title: 'Tree (Hierarchical) Topology',
+        badge: 'TREE TOPOLOGY',
+        desc: 'Branching star topologies organized in parent-child levels (Core, Distribution, and Access layers).',
+        pros: 'Organized hierarchy, highly scalable across large enterprise campuses.',
+        cons: 'If a root trunk or parent switch fails, its entire sub-branch is cut off.',
+        formula: 'Hierarchical Trunks',
+        risk: 'Root Hub Failure',
+        breakLabel: 'Break Root Switch'
+      },
+      hybrid: {
+        title: 'Hybrid Topology (Star-Ring)',
+        badge: 'HYBRID TOPOLOGY',
+        desc: 'Combines two distinct topologies (e.g. Star branches interconnected across an optical Ring backbone). Standard for modern metropolitan backbones.',
+        pros: 'Tailored flexibility; high performance where needed and cost-effective at branch edges.',
+        cons: 'Complex configuration and specialized multi-protocol hardware.',
+        formula: 'Custom',
+        risk: 'Architectural Specific',
+        breakLabel: 'Sever Backbone Interlink'
+      }
+    };
+
+    function switchTopology(topoKey) {
+      currentTopo = topoKey;
+      isLinkBroken = false;
+      const meta = topoMeta[topoKey];
+
+      // Update button states
+      ['star', 'bus', 'ring', 'mesh', 'tree', 'hybrid'].forEach(k => {
+        const btn = document.getElementById(`topBtn-${k}`);
+        if (k === topoKey) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 text-white shadow";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white";
+        }
+      });
+
+      // Update Info Cards
+      document.getElementById('activeTopBadge').textContent = meta.badge;
+      document.getElementById('topoInfoTitle').textContent = meta.title;
+      document.getElementById('topoInfoDesc').textContent = meta.desc;
+      document.getElementById('topoPros').textContent = meta.pros;
+      document.getElementById('topoCons').textContent = meta.cons;
+      document.getElementById('topoFormula').textContent = meta.formula;
+      document.getElementById('topoRisk').textContent = meta.risk;
+      document.getElementById('breakBtnText').textContent = meta.breakLabel;
+      document.getElementById('topoTrafficStatus').textContent = "Status: All links operational.";
+      document.getElementById('topoTrafficStatus').className = "text-emerald-400 font-mono";
+
+      drawTopologySVG();
+    }
+
+    function toggleCableBreak() {
+      isLinkBroken = !isLinkBroken;
+      const status = document.getElementById('topoTrafficStatus');
+      if (isLinkBroken) {
+        status.textContent = "WARNING: Link failure injected! Network integrity compromised.";
+        status.className = "text-rose-400 font-mono font-bold animate-pulse";
+        document.getElementById('breakLinkBtn').classList.add('bg-rose-600', 'text-white');
+      } else {
+        status.textContent = "Status: Links repaired and healthy.";
+        status.className = "text-emerald-400 font-mono";
+        document.getElementById('breakLinkBtn').classList.remove('bg-rose-600', 'text-white');
+      }
+      drawTopologySVG();
+    }
+
+    function drawTopologySVG() {
+      const svg = document.getElementById('topoCanvas');
+      svg.innerHTML = '';
+
+      if (currentTopo === 'star') {
+        const center = { x: 300, y: 160 };
+        const nodes = [
+          { x: 140, y: 70, label: 'PC 1' },
+          { x: 460, y: 70, label: 'PC 2' },
+          { x: 140, y: 250, label: 'PC 3' },
+          { x: 460, y: 250, label: 'PC 4' },
+          { x: 300, y: 40, label: 'Server' }
+        ];
+
+        // Draw Links
+        nodes.forEach((n, i) => {
+          const broken = isLinkBroken && i === 0;
+          svg.innerHTML += `
+            <line x1="${center.x}" y1="${center.y}" x2="${n.x}" y2="${n.y}" 
+                  stroke="${broken ? '#f43f5e' : (isLinkBroken ? '#e11d48' : '#06b6d4')}" 
+                  stroke-width="${broken ? 2 : 3}" 
+                  stroke-dasharray="${broken ? '4,4' : 'none'}" 
+                  id="topLink-${i}"/>
+          `;
+        });
+
+        // Center Switch
+        svg.innerHTML += `
+          <circle cx="${center.x}" cy="${center.y}" r="28" fill="${isLinkBroken ? '#450a0a' : '#083344'}" stroke="${isLinkBroken ? '#f43f5e' : '#06b6d4'}" stroke-width="3"/>
+          <text x="${center.x}" y="${center.y + 4}" fill="#e0f2fe" font-size="11" font-family="monospace" font-weight="bold" text-anchor="middle">${isLinkBroken ? 'OFFLINE' : 'SWITCH'}</text>
+        `;
+
+        // Nodes
+        nodes.forEach((n, i) => {
+          svg.innerHTML += `
+            <circle cx="${n.x}" cy="${n.y}" r="20" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+            <text x="${n.x}" y="${n.y + 4}" fill="#e2e8f0" font-size="10" font-family="monospace" text-anchor="middle">${n.label}</text>
+          `;
+        });
+
+      } else if (currentTopo === 'bus') {
+        // Backbone line
+        const broken = isLinkBroken;
+        svg.innerHTML += `
+          <!-- Terminators -->
+          <rect x="60" y="140" width="12" height="40" fill="#f59e0b" rx="2" />
+          <rect x="528" y="140" width="12" height="40" fill="#f59e0b" rx="2" />
+          <text x="66" y="195" fill="#f59e0b" font-size="9" font-family="monospace" text-anchor="middle">TERM</text>
+          <text x="534" y="195" fill="#f59e0b" font-size="9" font-family="monospace" text-anchor="middle">TERM</text>
+
+          <!-- Main Backbone -->
+          <line x1="72" y1="160" x2="${broken ? '280' : '528'}" y2="160" stroke="${broken ? '#ef4444' : '#f59e0b'}" stroke-width="6"/>
+          ${broken ? `<line x1="320" y1="160" x2="528" y2="160" stroke="#ef4444" stroke-width="6" stroke-dasharray="4,4"/>
+                      <text x="300" y="145" fill="#f43f5e" font-size="12" font-family="monospace" font-weight="bold" text-anchor="middle">CUT</text>` : ''}
+        `;
+
+        const taps = [
+          { x: 140, y: 70, label: 'Node A' },
+          { x: 260, y: 250, label: 'Node B' },
+          { x: 380, y: 70, label: 'Node C' },
+          { x: 470, y: 250, label: 'Node D' }
+        ];
+
+        taps.forEach(tap => {
+          svg.innerHTML += `
+            <line x1="${tap.x}" y1="160" x2="${tap.x}" y2="${tap.y}" stroke="#64748b" stroke-width="2" stroke-dasharray="2,2"/>
+            <circle cx="${tap.x}" cy="160" r="5" fill="#f59e0b"/>
+            <circle cx="${tap.x}" cy="${tap.y}" r="18" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+            <text x="${tap.x}" y="${tap.y + 4}" fill="#e2e8f0" font-size="9" font-family="monospace" text-anchor="middle">${tap.label}</text>
+          `;
+        });
+
+      } else if (currentTopo === 'ring') {
+        const center = { x: 300, y: 160 };
+        const r = 100;
+        const count = 5;
+        const coords = [];
+
+        for (let i = 0; i < count; i++) {
+          const angle = (i * 2 * Math.PI) / count - Math.PI / 2;
+          coords.push({
+            x: center.x + r * Math.cos(angle),
+            y: center.y + r * Math.sin(angle),
+            label: `N${i+1}`
+          });
+        }
+
+        // Draw Ring segments
+        for (let i = 0; i < count; i++) {
+          const next = coords[(i + 1) % count];
+          const broken = isLinkBroken && i === 1;
+          svg.innerHTML += `
+            <line x1="${coords[i].x}" y1="${coords[i].y}" x2="${next.x}" y2="${next.y}" 
+                  stroke="${broken ? '#f43f5e' : '#a855f7'}" 
+                  stroke-width="${broken ? 2 : 4}" 
+                  stroke-dasharray="${broken ? '4,4' : 'none'}"/>
+          `;
+          if (broken) {
+            svg.innerHTML += `<text x="${(coords[i].x + next.x)/2}" y="${(coords[i].y + next.y)/2}" fill="#f43f5e" font-size="10" font-weight="bold" font-family="monospace">BREAK</text>`;
+          }
+        }
+
+        // Ring Nodes
+        coords.forEach((c) => {
+          svg.innerHTML += `
+            <circle cx="${c.x}" cy="${c.y}" r="18" fill="#1e1b4b" stroke="#c084fc" stroke-width="2"/>
+            <text x="${c.x}" y="${c.y + 4}" fill="#f3e8ff" font-size="10" font-family="monospace" font-weight="bold" text-anchor="middle">${c.label}</text>
+          `;
+        });
+
+        svg.innerHTML += `
+          <text x="${center.x}" y="${center.y}" fill="#a855f7" font-size="11" font-family="monospace" text-anchor="middle">TOKEN RING</text>
+        `;
+
+      } else if (currentTopo === 'mesh') {
+        const nodes = [
+          { x: 200, y: 70, label: 'R1' },
+          { x: 400, y: 70, label: 'R2' },
+          { x: 470, y: 220, label: 'R3' },
+          { x: 300, y: 280, label: 'R4' },
+          { x: 130, y: 220, label: 'R5' }
+        ];
+
+        // All-to-all links
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const broken = isLinkBroken && (i === 0 && j === 1);
+            svg.innerHTML += `
+              <line x1="${nodes[i].x}" y1="${nodes[i].y}" x2="${nodes[j].x}" y2="${nodes[j].y}" 
+                    stroke="${broken ? '#f43f5e' : '#10b981'}" 
+                    stroke-width="${broken ? 1 : 2}" 
+                    stroke-opacity="${broken ? '0.4' : '0.6'}"
+                    stroke-dasharray="${broken ? '4,4' : 'none'}"/>
+            `;
+          }
+        }
+
+        nodes.forEach(n => {
+          svg.innerHTML += `
+            <circle cx="${n.x}" cy="${n.y}" r="18" fill="#064e3b" stroke="#34d399" stroke-width="2"/>
+            <text x="${n.x}" y="${n.y + 4}" fill="#ecfdf5" font-size="11" font-family="monospace" font-weight="bold" text-anchor="middle">${n.label}</text>
+          `;
+        });
+      } else {
+        // Tree or Hybrid fallback view
+        svg.innerHTML += `
+          <!-- Tree diagram -->
+          <circle cx="300" cy="50" r="20" fill="${isLinkBroken ? '#450a0a' : '#0c4a6e'}" stroke="#38bdf8" stroke-width="2"/>
+          <text x="300" y="55" fill="#e0f2fe" font-size="10" font-family="monospace" text-anchor="middle">Root Hub</text>
+
+          <line x1="300" y1="70" x2="180" y2="150" stroke="${isLinkBroken ? '#f43f5e' : '#38bdf8'}" stroke-width="3"/>
+          <line x1="300" y1="70" x2="420" y2="150" stroke="#38bdf8" stroke-width="3"/>
+
+          <circle cx="180" cy="150" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+          <text x="180" y="154" fill="#e2e8f0" font-size="9" font-family="monospace" text-anchor="middle">Dist A</text>
+
+          <circle cx="420" cy="150" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+          <text x="420" y="154" fill="#e2e8f0" font-size="9" font-family="monospace" text-anchor="middle">Dist B</text>
+
+          <!-- Leaves -->
+          <line x1="180" y1="168" x2="130" y2="240" stroke="#64748b" stroke-width="2"/>
+          <line x1="180" y1="168" x2="230" y2="240" stroke="#64748b" stroke-width="2"/>
+          <line x1="420" y1="168" x2="370" y2="240" stroke="#64748b" stroke-width="2"/>
+          <line x1="420" y1="168" x2="470" y2="240" stroke="#64748b" stroke-width="2"/>
+
+          <circle cx="130" cy="240" r="14" fill="#020617" stroke="#94a3b8" stroke-width="1.5"/>
+          <circle cx="230" cy="240" r="14" fill="#020617" stroke="#94a3b8" stroke-width="1.5"/>
+          <circle cx="370" cy="240" r="14" fill="#020617" stroke="#94a3b8" stroke-width="1.5"/>
+          <circle cx="470" cy="240" r="14" fill="#020617" stroke="#94a3b8" stroke-width="1.5"/>
+        `;
+      }
+    }
+
+    function simulateTopologyTraffic() {
+      const status = document.getElementById('topoTrafficStatus');
+      if (isLinkBroken && (currentTopo === 'star' || currentTopo === 'bus' || currentTopo === 'ring')) {
+        status.textContent = "TRANSMISSION FAILED: Broken link prevented packet arrival!";
+        status.className = "text-rose-400 font-mono font-bold";
+        return;
+      }
+      status.textContent = "TRANSMITTING: Packet successfully routed across active topological pathways!";
+      status.className = "text-cyan-400 font-mono font-bold";
+      setTimeout(() => {
+        status.textContent = "SUCCESS: Acknowledgment returned without packet loss.";
+        status.className = "text-emerald-400 font-mono";
+      }, 1000);
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 05: OSI 7-LAYER VS TCP/IP 4-LAYER & ENCAPSULATION
+    // -------------------------------------------------------------
+    function renderOsiTcp(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left: OSI vs TCP/IP Mapping Stack -->
+            <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i> OSI 7-Layer vs TCP/IP Stack
+                </h3>
+                <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded">SIDE-BY-SIDE</span>
+              </div>
+
+              <!-- Interactive Stack Layers -->
+              <div class="mt-4 space-y-1.5 text-xs">
+                <!-- Layer 7 -->
+                <div onclick="inspectLayer(7)" class="p-2.5 rounded-lg border border-purple-500/40 bg-purple-950/30 flex items-center justify-between cursor-pointer hover:bg-purple-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-purple-500 text-black font-bold font-mono text-[11px] flex items-center justify-center">7</span>
+                    <span class="font-bold text-purple-200">Application</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-purple-400">HTTP, DNS, SSH, FTP</span>
+                </div>
+
+                <!-- Layer 6 -->
+                <div onclick="inspectLayer(6)" class="p-2.5 rounded-lg border border-purple-500/30 bg-purple-950/20 flex items-center justify-between cursor-pointer hover:bg-purple-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-purple-600 text-white font-bold font-mono text-[11px] flex items-center justify-center">6</span>
+                    <span class="font-bold text-purple-200">Presentation</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-purple-400">SSL/TLS, ASCII, JPEG</span>
+                </div>
+
+                <!-- Layer 5 -->
+                <div onclick="inspectLayer(5)" class="p-2.5 rounded-lg border border-purple-500/20 bg-purple-950/10 flex items-center justify-between cursor-pointer hover:bg-purple-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-purple-700 text-white font-bold font-mono text-[11px] flex items-center justify-center">5</span>
+                    <span class="font-bold text-purple-200">Session</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-purple-400">NetBIOS, RPC, Sockets</span>
+                </div>
+
+                <!-- Layer 4 -->
+                <div onclick="inspectLayer(4)" class="p-2.5 rounded-lg border border-blue-500/40 bg-blue-950/30 flex items-center justify-between cursor-pointer hover:bg-blue-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-blue-500 text-black font-bold font-mono text-[11px] flex items-center justify-center">4</span>
+                    <span class="font-bold text-blue-200">Transport</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-blue-400">TCP (Segments), UDP</span>
+                </div>
+
+                <!-- Layer 3 -->
+                <div onclick="inspectLayer(3)" class="p-2.5 rounded-lg border border-cyan-500/40 bg-cyan-950/30 flex items-center justify-between cursor-pointer hover:bg-cyan-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-cyan-500 text-black font-bold font-mono text-[11px] flex items-center justify-center">3</span>
+                    <span class="font-bold text-cyan-200">Network</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-cyan-400">IPv4, IPv6, ICMP, Routers</span>
+                </div>
+
+                <!-- Layer 2 -->
+                <div onclick="inspectLayer(2)" class="p-2.5 rounded-lg border border-emerald-500/40 bg-emerald-950/30 flex items-center justify-between cursor-pointer hover:bg-emerald-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-emerald-500 text-black font-bold font-mono text-[11px] flex items-center justify-center">2</span>
+                    <span class="font-bold text-emerald-200">Data Link</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-emerald-400">Ethernet Frames, MAC, Switches</span>
+                </div>
+
+                <!-- Layer 1 -->
+                <div onclick="inspectLayer(1)" class="p-2.5 rounded-lg border border-amber-500/40 bg-amber-950/30 flex items-center justify-between cursor-pointer hover:bg-amber-900/40 transition">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded bg-amber-500 text-black font-bold font-mono text-[11px] flex items-center justify-center">1</span>
+                    <span class="font-bold text-amber-200">Physical</span>
+                  </div>
+                  <span class="font-mono text-[10px] text-amber-400">Bits, Cables, Radio, Hubs</span>
+                </div>
+              </div>
+
+              <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400">
+                <span class="text-cyan-400 font-bold">TCP/IP 4-Layer Mapping:</span> Layers 5, 6, 7 coalesce into TCP/IP's single <em>Application Layer</em>. Layer 4 maps to <em>Transport</em>, Layer 3 to <em>Internet</em>, and Layers 1 & 2 to <em>Network Access</em>.
+              </div>
+            </div>
+
+            <!-- Right: Interactive Encapsulation & Decapsulation Simulator -->
+            <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                      <i data-lucide="package" class="w-4 h-4 text-cyan-400"></i>
+                      Interactive Encapsulation Pipeline (PDU Evolution)
+                    </h3>
+                    <p class="text-[11px] text-slate-400">Watch headers attach as data moves DOWN the stack to the wire.</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button onclick="stepEncapsulation(-1)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs">
+                      &larr; Prev
+                    </button>
+                    <button onclick="stepEncapsulation(1)" class="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold">
+                      Next Step &rarr;
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Current Protocol Data Unit (PDU) Diagram -->
+                <div class="py-8 flex flex-col items-center justify-center">
+                  <div class="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3" id="pduStageTitle">
+                    Stage 1: Application Data (L7)
+                  </div>
+
+                  <!-- Dynamic Encapsulated Packet Bar -->
+                  <div id="pduVisualBox" class="flex items-center overflow-x-auto max-w-full p-2 bg-slate-950 rounded-xl border border-slate-800 shadow-inner">
+                    <!-- Rendered by JS -->
+                  </div>
+
+                  <div class="mt-4 text-center max-w-md">
+                    <span id="pduUnitName" class="text-xs font-bold text-cyan-400 font-mono block">Data (Raw Payload)</span>
+                    <p id="pduExplanation" class="text-xs text-slate-300 mt-1">
+                      User types an email or web request. At the application layer, this is raw unencapsulated data payload.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Layer Detail Inspector Callout -->
+              <div id="layerDetailCard" class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div class="flex items-center justify-between">
+                  <span id="inspectLayerName" class="text-xs font-bold text-cyan-300 font-mono">SELECTED: LAYER 4 - TRANSPORT</span>
+                  <span id="inspectLayerPDU" class="text-[10px] font-mono text-slate-400">PDU: Segment</span>
+                </div>
+                <p id="inspectLayerDesc" class="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Responsible for end-to-end communication, flow control, port addressing (source/dest ports), and reliability via TCP sliding window or lightweight UDP datagrams.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      updatePduView();
+    }
+
+    let pduStep = 0;
+    const pduSteps = [
+      {
+        stage: 'Stage 1: Application Data (Layer 7-5)',
+        unit: 'PDU: Data Payload',
+        desc: 'Application creates the raw user payload (e.g. GET /index.html or Email message). No networking headers attached yet.',
+        html: `
+          <div class="px-6 py-3 rounded-lg bg-purple-600 text-black font-bold font-mono text-xs shadow-md">
+            [ HTTP Payload Data: "GET /index.html" ]
+          </div>
+        `
+      },
+      {
+        stage: 'Stage 2: Transport Layer (Layer 4)',
+        unit: 'PDU: TCP Segment',
+        desc: 'Transport layer chops large data into segments and attaches the TCP Header containing Source Port (54321), Destination Port (80/443), and Sequence Numbers.',
+        html: `
+          <div class="px-3 py-3 rounded-l-lg bg-blue-500 text-black font-bold font-mono text-xs border-r border-black/30">
+            + TCP Header (Port 80)
+          </div>
+          <div class="px-6 py-3 rounded-r-lg bg-purple-600 text-black font-bold font-mono text-xs">
+            Payload Data
+          </div>
+        `
+      },
+      {
+        stage: 'Stage 3: Network Layer (Layer 3)',
+        unit: 'PDU: IP Packet / Datagram',
+        desc: 'Network layer wraps the Segment inside an IP Packet. Adds Source IP (192.168.1.10), Destination IP (142.250.190.46), and TTL (Time-To-Live).',
+        html: `
+          <div class="px-3 py-3 rounded-l-lg bg-cyan-400 text-black font-bold font-mono text-xs border-r border-black/30">
+            + IP Header (Src/Dest IP)
+          </div>
+          <div class="px-3 py-3 bg-blue-500 text-black font-bold font-mono text-xs border-r border-black/30">
+            TCP Header
+          </div>
+          <div class="px-6 py-3 rounded-r-lg bg-purple-600 text-black font-bold font-mono text-xs">
+            Payload Data
+          </div>
+        `
+      },
+      {
+        stage: 'Stage 4: Data Link Layer (Layer 2)',
+        unit: 'PDU: Ethernet Frame',
+        desc: 'Data Link layer encapsulates packet into a Frame. Pre-pends Ethernet Header with MAC addresses and appends a CRC (Cyclic Redundancy Check) Trailer for error checking.',
+        html: `
+          <div class="px-2.5 py-3 rounded-l-lg bg-emerald-400 text-black font-bold font-mono text-xs border-r border-black/30">
+            + MAC Header
+          </div>
+          <div class="px-2.5 py-3 bg-cyan-400 text-black font-bold font-mono text-xs border-r border-black/30">
+            IP Header
+          </div>
+          <div class="px-2.5 py-3 bg-blue-500 text-black font-bold font-mono text-xs border-r border-black/30">
+            TCP Header
+          </div>
+          <div class="px-4 py-3 bg-purple-600 text-black font-bold font-mono text-xs">
+            Payload
+          </div>
+          <div class="px-2.5 py-3 rounded-r-lg bg-rose-400 text-black font-bold font-mono text-xs border-l border-black/30">
+            CRC Trailer
+          </div>
+        `
+      },
+      {
+        stage: 'Stage 5: Physical Layer (Layer 1)',
+        unit: 'PDU: Physical Bits (0s & 1s)',
+        desc: 'Frame is converted into electromagnetic waves, light pulses (fiber), or radio frequencies (Wi-Fi) across the wire.',
+        html: `
+          <div class="px-4 py-3 rounded-lg bg-amber-400 text-black font-mono font-extrabold text-xs tracking-widest animate-pulse">
+            01001001 01010000 00100000 01010000 01001011 01010100
+          </div>
+        `
+      }
+    ];
+
+    function stepEncapsulation(dir) {
+      pduStep = Math.max(0, Math.min(pduSteps.length - 1, pduStep + dir));
+      updatePduView();
+    }
+
+    function updatePduView() {
+      const cur = pduSteps[pduStep];
+      document.getElementById('pduStageTitle').textContent = cur.stage;
+      document.getElementById('pduUnitName').textContent = cur.unit;
+      document.getElementById('pduExplanation').textContent = cur.desc;
+      document.getElementById('pduVisualBox').innerHTML = cur.html;
+    }
+
+    const layerDetails = {
+      7: { name: 'Layer 7 - Application', pdu: 'Data', desc: 'Direct interface with user software. Protocols: HTTP (Web browsing), SMTP (Email), DNS (Domain queries), SSH (Terminal management).' },
+      6: { name: 'Layer 6 - Presentation', pdu: 'Data', desc: 'Syntax translation, encryption/decryption (TLS/SSL), and media compression (JPEG, MP4, ASCII to EBCDIC).' },
+      5: { name: 'Layer 5 - Session', pdu: 'Data', desc: 'Establishes, manages, checkpoints, and terminates long-lived connection dialogs between applications (RPC, Sockets).' },
+      4: { name: 'Layer 4 - Transport', pdu: 'Segment (TCP) / Datagram (UDP)', desc: 'Port multiplexing, reliability, sequencing, and packet retransmission (TCP 3-way handshake, UDP fast streaming).' },
+      3: { name: 'Layer 3 - Network', pdu: 'Packet', desc: 'Logical IP addressing, subnet masking, packet fragmentation, and path routing between disparate networks (Routers, ICMP).' },
+      2: { name: 'Layer 2 - Data Link', pdu: 'Frame', desc: 'Physical MAC address switching, media access control (CSMA/CD), error detection with Frame Check Sequences (Switches, Bridges).' },
+      1: { name: 'Layer 1 - Physical', pdu: 'Bits', desc: 'Raw transmission of unstructured binary stream over physical cables (Cat6 copper, optical fiber, radio frequencies, Hubs).' }
+    };
+
+    function inspectLayer(num) {
+      const d = layerDetails[num];
+      document.getElementById('inspectLayerName').textContent = `SELECTED: ${d.name.toUpperCase()}`;
+      document.getElementById('inspectLayerPDU').textContent = `PDU: ${d.pdu}`;
+      document.getElementById('inspectLayerDesc').textContent = d.desc;
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 06: IPv4 VS IPv6 & BINARY CONVERTER
+    // -------------------------------------------------------------
+    function renderIpv4Ipv6(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Comparison Summary Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- IPv4 Card -->
+            <div class="bg-slate-900 border-2 border-cyan-500/40 rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded">32-BIT ADDRESSING</span>
+                  <i data-lucide="hash" class="w-5 h-5 text-cyan-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-2">IPv4 (Internet Protocol v4)</h3>
+                <p class="text-xs text-slate-300 mt-1">Deployed in 1983 for ARPANET. Dotted-decimal notation divided into 4 octets.</p>
+                
+                <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-center">
+                  <span class="text-sm font-bold text-cyan-400">192 . 168 . 1 . 100</span>
+                  <span class="text-[10px] text-slate-500 block mt-1">4 Octets &times; 8 Bits = 32 Total Bits</span>
+                </div>
+
+                <div class="mt-4 space-y-2 text-xs">
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Total Pool:</span>
+                    <span class="font-mono text-cyan-300">2^32 &approx; 4.29 Billion Addresses</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Status:</span>
+                    <span class="font-mono text-rose-400">Depleted (Requires NAT workaround)</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Header Size:</span>
+                    <span class="font-mono text-slate-300">20 - 60 Bytes (Variable options)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Configuration:</span>
+                    <span class="text-slate-300">Manual or DHCP</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- IPv6 Card -->
+            <div class="bg-slate-900 border-2 border-purple-500/40 rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-purple-400 bg-purple-950 px-2.5 py-1 rounded">128-BIT ADDRESSING</span>
+                  <i data-lucide="sparkles" class="w-5 h-5 text-purple-400"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mt-2">IPv6 (Next-Gen Protocol)</h3>
+                <p class="text-xs text-slate-300 mt-1">Hexadecimal notation divided into 8 hextets separated by colons.</p>
+                
+                <div class="mt-4 p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-center">
+                  <span class="text-xs font-bold text-purple-400">2001:0db8:85a3::8a2e:0370:7334</span>
+                  <span class="text-[10px] text-slate-500 block mt-1">8 Hextets &times; 16 Bits = 128 Total Bits</span>
+                </div>
+
+                <div class="mt-4 space-y-2 text-xs">
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Total Pool:</span>
+                    <span class="font-mono text-purple-300">2^128 &approx; 3.4 &times; 10^38 Addresses</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">NAT Required:</span>
+                    <span class="font-mono text-emerald-400">No (True End-to-End reachability)</span>
+                  </div>
+                  <div class="flex justify-between border-b border-slate-800 pb-1">
+                    <span class="text-slate-400">Header Size:</span>
+                    <span class="font-mono text-emerald-400">Fixed 40 Bytes (Faster router lookups)</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Security:</span>
+                    <span class="text-slate-300">IPSec natively integrated</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive IPv4 Octet-to-Binary Classroom Tool -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h4 class="font-bold text-white text-base flex items-center gap-2 mb-2">
+              <i data-lucide="binary" class="w-5 h-5 text-cyan-400"></i> Interactive IPv4 Decimal-to-Binary Dissector
+            </h4>
+            <p class="text-xs text-slate-400 mb-6">Type or adjust any octet below to see how routers view IPv4 addresses in raw binary bits.</p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <!-- Octet 1 -->
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col items-center">
+                <label class="text-[10px] font-mono text-slate-400 font-bold mb-1">OCTET 1</label>
+                <input id="oct1" type="number" min="0" max="255" value="192" oninput="updateBinaryConverter()" class="w-20 text-center bg-slate-900 border border-cyan-500 rounded-lg p-2 font-mono font-bold text-cyan-300 text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <span id="bin1" class="text-xs font-mono text-emerald-400 mt-2 font-bold tracking-wider">11000000</span>
+                <span class="text-[9px] text-slate-500 mt-1">128+64 = 192</span>
+              </div>
+
+              <!-- Octet 2 -->
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col items-center">
+                <label class="text-[10px] font-mono text-slate-400 font-bold mb-1">OCTET 2</label>
+                <input id="oct2" type="number" min="0" max="255" value="168" oninput="updateBinaryConverter()" class="w-20 text-center bg-slate-900 border border-cyan-500 rounded-lg p-2 font-mono font-bold text-cyan-300 text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <span id="bin2" class="text-xs font-mono text-emerald-400 mt-2 font-bold tracking-wider">10101000</span>
+                <span class="text-[9px] text-slate-500 mt-1">128+32+8 = 168</span>
+              </div>
+
+              <!-- Octet 3 -->
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col items-center">
+                <label class="text-[10px] font-mono text-slate-400 font-bold mb-1">OCTET 3</label>
+                <input id="oct3" type="number" min="0" max="255" value="1" oninput="updateBinaryConverter()" class="w-20 text-center bg-slate-900 border border-cyan-500 rounded-lg p-2 font-mono font-bold text-cyan-300 text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <span id="bin3" class="text-xs font-mono text-emerald-400 mt-2 font-bold tracking-wider">00000001</span>
+                <span class="text-[9px] text-slate-500 mt-1">0+0+...+1 = 1</span>
+              </div>
+
+              <!-- Octet 4 -->
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col items-center">
+                <label class="text-[10px] font-mono text-slate-400 font-bold mb-1">OCTET 4</label>
+                <input id="oct4" type="number" min="0" max="255" value="50" oninput="updateBinaryConverter()" class="w-20 text-center bg-slate-900 border border-cyan-500 rounded-lg p-2 font-mono font-bold text-cyan-300 text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                <span id="bin4" class="text-xs font-mono text-emerald-400 mt-2 font-bold tracking-wider">00110010</span>
+                <span class="text-[9px] text-slate-500 mt-1">32+16+2 = 50</span>
+              </div>
+            </div>
+
+            <!-- Complete Binary Stream -->
+            <div class="mt-6 p-4 rounded-xl bg-black/60 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span class="text-xs text-slate-400">Full 32-Bit Unbroken Stream:</span>
+              <span id="fullBinaryStream" class="font-mono text-xs sm:text-sm font-bold text-cyan-400 tracking-widest break-all">
+                11000000.10101000.00000001.00110010
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+      updateBinaryConverter();
+    }
+
+    function updateBinaryConverter() {
+      const o1 = Math.min(255, Math.max(0, parseInt(document.getElementById('oct1').value) || 0));
+      const o2 = Math.min(255, Math.max(0, parseInt(document.getElementById('oct2').value) || 0));
+      const o3 = Math.min(255, Math.max(0, parseInt(document.getElementById('oct3').value) || 0));
+      const o4 = Math.min(255, Math.max(0, parseInt(document.getElementById('oct4').value) || 0));
+
+      const b1 = o1.toString(2).padStart(8, '0');
+      const b2 = o2.toString(2).padStart(8, '0');
+      const b3 = o3.toString(2).padStart(8, '0');
+      const b4 = o4.toString(2).padStart(8, '0');
+
+      document.getElementById('bin1').textContent = b1;
+      document.getElementById('bin2').textContent = b2;
+      document.getElementById('bin3').textContent = b3;
+      document.getElementById('bin4').textContent = b4;
+
+      document.getElementById('fullBinaryStream').textContent = `${b1}.${b2}.${b3}.${b4}`;
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 07: STATIC IP VS DHCP & DORA PROCESS SIMULATOR
+    // -------------------------------------------------------------
+    function renderDhcpDora(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Static vs Dynamic Header -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <div class="flex items-center gap-2 text-cyan-400 font-bold text-sm">
+                <i data-lucide="lock" class="w-4 h-4"></i> Static IP Addressing
+              </div>
+              <p class="text-xs text-slate-300 mt-2">
+                Manually configured on the device adapter. Never changes unless altered by a network admin. Essential for web servers, DNS servers, and network printers so clients always know where to find them.
+              </p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <div class="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Dynamic IP (DHCP)
+              </div>
+              <p class="text-xs text-slate-300 mt-2">
+                Automated assignment via <strong>Dynamic Host Configuration Protocol</strong>. Devices lease an IP address from an available pool for a set duration. Reduces human configuration errors and IP collisions.
+              </p>
+            </div>
+          </div>
+
+          <!-- Interactive DORA Process Simulator -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+              <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i data-lucide="radio" class="w-5 h-5 text-cyan-400"></i> The DORA Protocol Handshake Simulator
+                </h3>
+                <p class="text-xs text-slate-400">Step through the 4-stage DHCP handshake between a new laptop and router.</p>
+              </div>
+
+              <!-- DORA Playback Controls -->
+              <div class="flex items-center gap-2">
+                <button onclick="resetDora()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+                  Reset
+                </button>
+                <button onclick="stepDora()" id="doraNextBtn" class="px-4 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold flex items-center gap-1.5">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i> <span id="doraStepLabel">Start: 1. Discover</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Visualization Stage -->
+            <div class="py-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <!-- Client PC -->
+              <div class="md:col-span-3 flex flex-col items-center text-center">
+                <div id="doraClientBox" class="w-20 h-20 rounded-2xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center p-2 shadow-lg transition-all">
+                  <i data-lucide="laptop" class="w-8 h-8 text-slate-300"></i>
+                  <span class="text-[9px] font-mono font-bold text-slate-300 mt-1">CLIENT PC</span>
+                </div>
+                <span id="doraClientIP" class="text-xs font-mono font-bold text-amber-400 mt-2">IP: 0.0.0.0 (Unassigned)</span>
+                <span class="text-[10px] text-slate-500 font-mono">MAC: 4A:2B:CC:90</span>
+              </div>
+
+              <!-- Interactive Exchange Highway -->
+              <div class="md:col-span-6 flex flex-col space-y-2.5">
+                <!-- Discover -->
+                <div id="doraBar-D" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs flex items-center justify-between transition-all">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-cyan-400">D</span>
+                    <span class="font-bold text-slate-400">DHCP DISCOVER</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-500">Client &rarr; Broadcast (255.255.255.255)</span>
+                </div>
+
+                <!-- Offer -->
+                <div id="doraBar-O" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs flex items-center justify-between transition-all">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-purple-400">O</span>
+                    <span class="font-bold text-slate-400">DHCP OFFER</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-500">Server &rarr; Client (Offers 192.168.1.55)</span>
+                </div>
+
+                <!-- Request -->
+                <div id="doraBar-R" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs flex items-center justify-between transition-all">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-blue-400">R</span>
+                    <span class="font-bold text-slate-400">DHCP REQUEST</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-500">Client &rarr; Server ("I accept 192.168.1.55")</span>
+                </div>
+
+                <!-- Acknowledge -->
+                <div id="doraBar-A" class="p-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs flex items-center justify-between transition-all">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-emerald-400">A</span>
+                    <span class="font-bold text-slate-400">DHCP ACKNOWLEDGE</span>
+                  </div>
+                  <span class="text-[10px] font-mono text-slate-500">Server &rarr; Client (Lease Locked 24 hrs)</span>
+                </div>
+              </div>
+
+              <!-- DHCP Server -->
+              <div class="md:col-span-3 flex flex-col items-center text-center">
+                <div id="doraServerBox" class="w-20 h-20 rounded-2xl bg-cyan-950 border-2 border-cyan-500 flex flex-col items-center justify-center p-2 shadow-lg shadow-cyan-500/20">
+                  <i data-lucide="server" class="w-8 h-8 text-cyan-400"></i>
+                  <span class="text-[9px] font-mono font-bold text-cyan-300 mt-1">DHCP SERVER</span>
+                </div>
+                <span class="text-xs font-mono font-bold text-cyan-400 mt-2">192.168.1.1</span>
+                <span class="text-[10px] text-slate-500 font-mono">Pool: 192.168.1.50-200</span>
+              </div>
+            </div>
+
+            <!-- Handshake Log -->
+            <div id="doraLog" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300">
+              Click "Start: 1. Discover" to initiate the DORA broadcast.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    let doraStage = 0;
+    function resetDora() {
+      doraStage = 0;
+      document.getElementById('doraClientIP').textContent = "IP: 0.0.0.0 (Unassigned)";
+      document.getElementById('doraClientIP').className = "text-xs font-mono font-bold text-amber-400 mt-2";
+      document.getElementById('doraClientBox').className = "w-20 h-20 rounded-2xl bg-slate-800 border-2 border-slate-600 flex flex-col items-center justify-center p-2 shadow-lg transition-all";
+      document.getElementById('doraStepLabel').textContent = "Start: 1. Discover";
+
+      ['D', 'O', 'R', 'A'].forEach(k => {
+        const bar = document.getElementById(`doraBar-${k}`);
+        bar.className = "p-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs flex items-center justify-between transition-all";
+      });
+
+      document.getElementById('doraLog').textContent = "Simulation reset. Ready for DORA exchange.";
+    }
+
+    function stepDora() {
+      doraStage++;
+      const log = document.getElementById('doraLog');
+      const label = document.getElementById('doraStepLabel');
+
+      if (doraStage === 1) {
+        // Discover
+        document.getElementById('doraBar-D').className = "p-2.5 rounded-lg border border-cyan-500 bg-cyan-950/40 text-xs flex items-center justify-between shadow-md";
+        log.innerHTML = `<span class="text-cyan-400">&gt; [1. DISCOVER]:</span> Client broadcasts UDP datagram from 0.0.0.0:68 to 255.255.255.255:67 asking: "Is there any DHCP Server active on this local LAN?"`;
+        label.textContent = "Step 2: Offer";
+      } else if (doraStage === 2) {
+        // Offer
+        document.getElementById('doraBar-O').className = "p-2.5 rounded-lg border border-purple-500 bg-purple-950/40 text-xs flex items-center justify-between shadow-md";
+        log.innerHTML = `<span class="text-purple-400">&gt; [2. OFFER]:</span> DHCP Server reserves IP 192.168.1.55 from its pool and sends an Offer packet containing Subnet Mask (255.255.255.0), Gateway (192.168.1.1), and DNS (8.8.8.8).`;
+        label.textContent = "Step 3: Request";
+      } else if (doraStage === 3) {
+        // Request
+        document.getElementById('doraBar-R').className = "p-2.5 rounded-lg border border-blue-500 bg-blue-950/40 text-xs flex items-center justify-between shadow-md";
+        log.innerHTML = `<span class="text-blue-400">&gt; [3. REQUEST]:</span> Client formally replies to the server: "Thank you, I would like to accept the lease for 192.168.1.55." (Broadcasted so other potential DHCP servers know their offers were declined).`;
+        label.textContent = "Step 4: Acknowledge";
+      } else if (doraStage === 4) {
+        // Acknowledge
+        document.getElementById('doraBar-A').className = "p-2.5 rounded-lg border border-emerald-500 bg-emerald-950/40 text-xs flex items-center justify-between shadow-md";
+        log.innerHTML = `<span class="text-emerald-400">&gt; [4. ACKNOWLEDGE]:</span> DHCP Server sends DHCPACK finalizing lease agreement! Host network interface configured.`;
+        
+        const clientIP = document.getElementById('doraClientIP');
+        clientIP.textContent = "IP: 192.168.1.55 (Active Lease)";
+        clientIP.className = "text-xs font-mono font-bold text-emerald-400 mt-2";
+        document.getElementById('doraClientBox').className = "w-20 h-20 rounded-2xl bg-slate-800 border-2 border-emerald-500 flex flex-col items-center justify-center p-2 shadow-lg shadow-emerald-500/20";
+        label.textContent = "Completed (Reset)";
+      } else {
+        resetDora();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 08: IPv4 NETWORK CLASSES & INTERACTIVE CALCULATOR
+    // -------------------------------------------------------------
+    function renderClasses(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Class Summary Table -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="table" class="w-4 h-4 text-cyan-400"></i> IPv4 Classful Architecture Breakdown
+                </h3>
+                <p class="text-[11px] text-slate-400">Classful boundaries based on highest-order leading bits.</p>
+              </div>
+              <span class="text-[10px] font-mono text-cyan-400 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded">HISTORICAL STANDARD</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs font-mono">
+                <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th class="p-3">Class</th>
+                    <th class="p-3">Leading Bits</th>
+                    <th class="p-3">Octet Range</th>
+                    <th class="p-3">Default Subnet Mask</th>
+                    <th class="p-3">Net / Host Division</th>
+                    <th class="p-3">Max Usable Hosts</th>
+                    <th class="p-3">Primary Purpose</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-bold text-cyan-400">Class A</td>
+                    <td class="p-3">0...</td>
+                    <td class="p-3">1 - 126</td>
+                    <td class="p-3 text-emerald-400">255.0.0.0 (/8)</td>
+                    <td class="p-3"><span class="text-cyan-400 font-bold">N</span>.H.H.H</td>
+                    <td class="p-3 font-bold text-white">16,777,214</td>
+                    <td class="p-3 text-slate-400">Giant Telecoms, Governments</td>
+                  </tr>
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-bold text-purple-400">Class B</td>
+                    <td class="p-3">10...</td>
+                    <td class="p-3">128 - 191</td>
+                    <td class="p-3 text-emerald-400">255.255.0.0 (/16)</td>
+                    <td class="p-3"><span class="text-purple-400 font-bold">N.N</span>.H.H</td>
+                    <td class="p-3 font-bold text-white">65,534</td>
+                    <td class="p-3 text-slate-400">Large Universities & Enterprises</td>
+                  </tr>
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-bold text-emerald-400">Class C</td>
+                    <td class="p-3">110...</td>
+                    <td class="p-3">192 - 223</td>
+                    <td class="p-3 text-emerald-400">255.255.255.0 (/24)</td>
+                    <td class="p-3"><span class="text-emerald-400 font-bold">N.N.N</span>.H</td>
+                    <td class="p-3 font-bold text-white">254</td>
+                    <td class="p-3 text-slate-400">Small Business / Home LANs</td>
+                  </tr>
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-bold text-amber-400">Class D</td>
+                    <td class="p-3">1110...</td>
+                    <td class="p-3">224 - 239</td>
+                    <td class="p-3 text-slate-500">N/A (No host bits)</td>
+                    <td class="p-3">Multicast Group</td>
+                    <td class="p-3 text-slate-500">N/A</td>
+                    <td class="p-3 text-amber-300">Multicast (Video streaming, OSPF)</td>
+                  </tr>
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 font-bold text-rose-400">Class E</td>
+                    <td class="p-3">1111...</td>
+                    <td class="p-3">240 - 255</td>
+                    <td class="p-3 text-slate-500">N/A</td>
+                    <td class="p-3">Reserved</td>
+                    <td class="p-3 text-slate-500">N/A</td>
+                    <td class="p-3 text-rose-300">Experimental / R&D Research</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="p-3 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>* 127.0.0.0/8 is reserved for internal loopback diagnostic tests (127.0.0.1 = localhost).</span>
+              <span>Usable Hosts = 2^(Host Bits) - 2 (Network ID & Broadcast ID)</span>
+            </div>
+          </div>
+
+          <!-- Interactive IP Class & Subnet Analyzer Tool -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h4 class="font-bold text-white text-base flex items-center gap-2 mb-2">
+              <i data-lucide="calculator" class="w-5 h-5 text-cyan-400"></i> Interactive IPv4 Address Class Calculator
+            </h4>
+            <p class="text-xs text-slate-400 mb-6">Type any IPv4 address to determine its Class, Network ID, Broadcast ID, and usable host range.</p>
+
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <div class="relative flex-1 w-full">
+                <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3"></i>
+                <input id="ipCalcInput" type="text" value="192.168.10.45" oninput="calculateIpClass()" placeholder="e.g. 10.0.5.1" class="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl font-mono text-cyan-400 text-sm focus:outline-none focus:border-cyan-500">
+              </div>
+              <div class="flex gap-2">
+                <button onclick="presetIp('10.50.1.20')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300">Class A</button>
+                <button onclick="presetIp('172.16.4.15')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300">Class B</button>
+                <button onclick="presetIp('192.168.1.1')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300">Class C</button>
+              </div>
+            </div>
+
+            <!-- Output Diagnostic Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span class="text-[10px] font-mono text-slate-400 block font-bold">DETECTED CLASS</span>
+                <span id="resClass" class="text-lg font-mono font-extrabold text-cyan-400 mt-1 block">Class C</span>
+              </div>
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span class="text-[10px] font-mono text-slate-400 block font-bold">DEFAULT SUBNET MASK</span>
+                <span id="resMask" class="text-sm font-mono font-bold text-purple-400 mt-1.5 block">255.255.255.0</span>
+              </div>
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span class="text-[10px] font-mono text-slate-400 block font-bold">NETWORK ID (Subnet)</span>
+                <span id="resNetId" class="text-sm font-mono font-bold text-emerald-400 mt-1.5 block">192.168.10.0</span>
+              </div>
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span class="text-[10px] font-mono text-slate-400 block font-bold">USABLE HOST CAPACITY</span>
+                <span id="resHosts" class="text-sm font-mono font-bold text-white mt-1.5 block">254 Hosts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      calculateIpClass();
+    }
+
+    function presetIp(ip) {
+      document.getElementById('ipCalcInput').value = ip;
+      calculateIpClass();
+    }
+
+    function calculateIpClass() {
+      const input = document.getElementById('ipCalcInput').value.trim();
+      const parts = input.split('.');
+      const firstOctet = parseInt(parts[0]);
+
+      const resClass = document.getElementById('resClass');
+      const resMask = document.getElementById('resMask');
+      const resNetId = document.getElementById('resNetId');
+      const resHosts = document.getElementById('resHosts');
+
+      if (isNaN(firstOctet) || parts.length < 1) {
+        resClass.textContent = "Invalid IP";
+        return;
+      }
+
+      if (firstOctet === 127) {
+        resClass.textContent = "Loopback (127)";
+        resMask.textContent = "255.0.0.0";
+        resNetId.textContent = "127.0.0.0";
+        resHosts.textContent = "Host Diagnostic Only";
+      } else if (firstOctet >= 1 && firstOctet <= 126) {
+        resClass.textContent = "Class A";
+        resClass.className = "text-lg font-mono font-extrabold text-cyan-400 mt-1 block";
+        resMask.textContent = "255.0.0.0 (/8)";
+        resNetId.textContent = `${parts[0]}.0.0.0`;
+        resHosts.textContent = "16,777,214 Hosts";
+      } else if (firstOctet >= 128 && firstOctet <= 191) {
+        resClass.textContent = "Class B";
+        resClass.className = "text-lg font-mono font-extrabold text-purple-400 mt-1 block";
+        resMask.textContent = "255.255.0.0 (/16)";
+        resNetId.textContent = `${parts[0]}.${parts[1] || '0'}.0.0`;
+        resHosts.textContent = "65,534 Hosts";
+      } else if (firstOctet >= 192 && firstOctet <= 223) {
+        resClass.textContent = "Class C";
+        resClass.className = "text-lg font-mono font-extrabold text-emerald-400 mt-1 block";
+        resMask.textContent = "255.255.255.0 (/24)";
+        resNetId.textContent = `${parts[0]}.${parts[1] || '0'}.${parts[2] || '0'}.0`;
+        resHosts.textContent = "254 Hosts";
+      } else if (firstOctet >= 224 && firstOctet <= 239) {
+        resClass.textContent = "Class D (Multicast)";
+        resClass.className = "text-lg font-mono font-extrabold text-amber-400 mt-1 block";
+        resMask.textContent = "None (No Subnetting)";
+        resNetId.textContent = "Multicast Stream";
+        resHosts.textContent = "Group Members";
+      } else if (firstOctet >= 240 && firstOctet <= 255) {
+        resClass.textContent = "Class E (Experimental)";
+        resClass.className = "text-lg font-mono font-extrabold text-rose-400 mt-1 block";
+        resMask.textContent = "Reserved";
+        resNetId.textContent = "R&D Range";
+        resHosts.textContent = "Reserved";
+      } else {
+        resClass.textContent = "Out of Range";
+      }
+    }
+
+    // -------------------------------------------------------------
+    // TOPIC 09: PORTS & CORE PROTOCOLS (WITH 3-WAY TCP HANDSHAKE & DNS)
+    // -------------------------------------------------------------
+    function renderPortsProtocols(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- Protocol Cards / Port Matrix -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- HTTP -->
+            <div onclick="selectProtocolSimulator('http')" class="p-3 bg-slate-900 border border-slate-800 hover:border-cyan-500 rounded-xl cursor-pointer transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-cyan-400">PORT 80</span>
+                <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+              </div>
+              <h5 class="text-xs font-bold text-white mt-1">HTTP</h5>
+              <p class="text-[10px] text-slate-400">Unencrypted HyperText Transfer</p>
+            </div>
+
+            <!-- HTTPS -->
+            <div onclick="selectProtocolSimulator('https')" class="p-3 bg-slate-900 border border-slate-800 hover:border-emerald-500 rounded-xl cursor-pointer transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-emerald-400">PORT 443</span>
+                <i data-lucide="lock" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <h5 class="text-xs font-bold text-white mt-1">HTTPS</h5>
+              <p class="text-[10px] text-slate-400">Encrypted TLS/SSL Web</p>
+            </div>
+
+            <!-- DNS -->
+            <div onclick="selectProtocolSimulator('dns')" class="p-3 bg-slate-900 border border-slate-800 hover:border-purple-500 rounded-xl cursor-pointer transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-purple-400">PORT 53</span>
+                <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+              </div>
+              <h5 class="text-xs font-bold text-white mt-1">DNS</h5>
+              <p class="text-[10px] text-slate-400">Domain Name System (UDP/TCP)</p>
+            </div>
+
+            <!-- SSH -->
+            <div onclick="selectProtocolSimulator('ssh')" class="p-3 bg-slate-900 border border-slate-800 hover:border-amber-500 rounded-xl cursor-pointer transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-amber-400">PORT 22</span>
+                <i data-lucide="terminal" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <h5 class="text-xs font-bold text-white mt-1">SSH</h5>
+              <p class="text-[10px] text-slate-400">Secure Shell Remote Terminal</p>
+            </div>
+
+            <!-- FTP -->
+            <div onclick="selectProtocolSimulator('ftp')" class="p-3 bg-slate-900 border border-slate-800 hover:border-blue-500 rounded-xl cursor-pointer transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-blue-400">PORT 20/21</span>
+                <i data-lucide="file-text" class="w-4 h-4 text-blue-400"></i>
+              </div>
+              <h5 class="text-xs font-bold text-white mt-1">FTP</h5>
+              <p class="text-[10px] text-slate-400">File Transfer Protocol</p>
+            </div>
+
+            <!-- SMTP & SNMP -->
+            <div onclick="selectProtocolSimulator('smtp')" class="p-3 bg-slate-900 border border-slate-800 hover:border-rose-500 rounded-xl cursor-pointer transition">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-rose-400">PORT 25 / 161</span>
+                <i data-lucide="mail" class="w-4 h-4 text-rose-400"></i>
+              </div>
+              <h5 class="text-xs font-bold text-white mt-1">SMTP & SNMP</h5>
+              <p class="text-[10px] text-slate-400">Mail & Network Management</p>
+            </div>
+          </div>
+
+          <!-- Interactive Protocol Simulation Stage -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+              <div>
+                <h3 id="protoSimTitle" class="text-base font-bold text-white flex items-center gap-2">
+                  <i data-lucide="activity" class="w-5 h-5 text-cyan-400"></i>
+                  Interactive TCP 3-Way Handshake Simulation (SYN, SYN-ACK, ACK)
+                </h3>
+                <p id="protoSimSubtitle" class="text-xs text-slate-400">Observe how reliable Layer 4 connections are established before HTTP data transfer.</p>
+              </div>
+
+              <button onclick="runProtocolAction()" id="protoActionBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-bold text-xs shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+                <i data-lucide="play" class="w-4 h-4"></i> <span id="protoBtnLabel">Execute 3-Way Handshake</span>
+              </button>
+            </div>
+
+            <!-- Simulation Canvas -->
+            <div class="py-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center" id="protoCanvasContainer">
+              <!-- Rendered by protocol state -->
+            </div>
+
+            <!-- Telemetry Logs -->
+            <div id="protoConsoleLog" class="p-3 bg-black/70 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 space-y-1">
+              <span class="text-slate-500">// Ready to inspect packet handshakes and query resolutions.</span>
+            </div>
+          </div>
+        </div>
+      `;
+      selectProtocolSimulator('http');
+    }
+
+    let activeProtocol = 'http';
+    function selectProtocolSimulator(proto) {
+      activeProtocol = proto;
+      const title = document.getElementById('protoSimTitle');
+      const sub = document.getElementById('protoSimSubtitle');
+      const btnLabel = document.getElementById('protoBtnLabel');
+      const canvas = document.getElementById('protoCanvasContainer');
+      const log = document.getElementById('protoConsoleLog');
+
+      if (proto === 'http' || proto === 'https') {
+        title.innerHTML = `<i data-lucide="activity" class="w-5 h-5 text-cyan-400"></i> TCP 3-Way Handshake (${proto.toUpperCase()}: Port ${proto === 'http' ? '80' : '443'})`;
+        sub.textContent = "Reliable stream establishment: Client SYN &rarr; Server SYN-ACK &rarr; Client ACK.";
+        btnLabel.textContent = "Dispatch TCP Handshake";
+
+        canvas.innerHTML = `
+          <div class="md:col-span-3 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-xl bg-slate-800 border-2 border-cyan-400 flex items-center justify-center">
+              <i data-lucide="laptop" class="w-8 h-8 text-cyan-300"></i>
+            </div>
+            <span class="text-xs font-mono font-bold text-white mt-2">Browser Client</span>
+            <span class="text-[10px] text-slate-400">Port 52140</span>
+          </div>
+
+          <div class="md:col-span-6 space-y-3">
+            <div id="tcpStep1" class="p-2 rounded bg-slate-950 border border-slate-800 text-xs flex justify-between font-mono">
+              <span class="text-cyan-400">1. [SYN]</span>
+              <span class="text-slate-400">Seq = 100</span>
+              <span class="text-cyan-400">&rarr;&rarr;&rarr;</span>
+            </div>
+            <div id="tcpStep2" class="p-2 rounded bg-slate-950 border border-slate-800 text-xs flex justify-between font-mono">
+              <span class="text-purple-400">&larr;&larr;&larr;</span>
+              <span class="text-slate-400">Seq = 300, Ack = 101</span>
+              <span class="text-purple-400">2. [SYN-ACK]</span>
+            </div>
+            <div id="tcpStep3" class="p-2 rounded bg-slate-950 border border-slate-800 text-xs flex justify-between font-mono">
+              <span class="text-emerald-400">3. [ACK]</span>
+              <span class="text-slate-400">Ack = 301</span>
+              <span class="text-emerald-400">&rarr;&rarr;&rarr;</span>
+            </div>
+          </div>
+
+          <div class="md:col-span-3 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-xl bg-cyan-950 border-2 border-cyan-500 flex items-center justify-center">
+              <i data-lucide="server" class="w-8 h-8 text-cyan-400"></i>
+            </div>
+            <span class="text-xs font-mono font-bold text-white mt-2">Web Server</span>
+            <span class="text-[10px] font-mono text-cyan-400">Port ${proto === 'http' ? '80' : '443'}</span>
+          </div>
+        `;
+        log.innerHTML = `<span class="text-slate-500">// TCP State: LISTEN. Ready to initiate 3-Way Handshake.</span>`;
+      } else if (proto === 'dns') {
+        title.innerHTML = `<i data-lucide="book-open" class="w-5 h-5 text-purple-400"></i> DNS Recursive Resolution (UDP Port 53)`;
+        sub.textContent = "Translating human-friendly domain 'google.com' into computer IP 142.250.190.46.";
+        btnLabel.textContent = "Resolve 'google.com'";
+
+        canvas.innerHTML = `
+          <div class="md:col-span-3 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-xl bg-slate-800 border-2 border-purple-400 flex items-center justify-center">
+              <i data-lucide="laptop" class="w-8 h-8 text-purple-300"></i>
+            </div>
+            <span class="text-xs font-mono font-bold text-white mt-2">Client Resolver</span>
+          </div>
+
+          <div class="md:col-span-6 space-y-2 text-xs font-mono">
+            <div id="dnsStep1" class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between">
+              <span>Query: "google.com" &rarr;</span>
+              <span class="text-purple-400">Root Server (.)</span>
+            </div>
+            <div id="dnsStep2" class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between">
+              <span>Refers to &rarr;</span>
+              <span class="text-cyan-400">TLD Server (.com)</span>
+            </div>
+            <div id="dnsStep3" class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between">
+              <span>Resolved by &rarr;</span>
+              <span class="text-emerald-400">Authoritative Server</span>
+            </div>
+          </div>
+
+          <div class="md:col-span-3 flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-xl bg-purple-950 border-2 border-purple-500 flex items-center justify-center">
+              <i data-lucide="database" class="w-8 h-8 text-purple-400"></i>
+            </div>
+            <span class="text-xs font-mono font-bold text-white mt-2">DNS Hierarchy</span>
+            <span class="text-[10px] font-mono text-purple-300">A-Record Response</span>
+          </div>
+        `;
+        log.innerHTML = `<span class="text-slate-500">// Cache checked (Miss). Ready to execute recursive DNS resolution.</span>`;
+      } else {
+        // SSH / FTP / SNMP
+        title.innerHTML = `<i data-lucide="terminal" class="w-5 h-5 text-amber-400"></i> Secure Shell & Management (Port 22/25/161)`;
+        sub.textContent = "Encrypted asymmetric key exchange and secure telemetry polling.";
+        btnLabel.textContent = "Perform Protocol Check";
+
+        canvas.innerHTML = `
+          <div class="md:col-span-12 p-6 bg-slate-950 rounded-xl border border-slate-800 text-center space-y-2">
+            <span class="text-xs font-mono text-amber-400 font-bold uppercase">${proto} Protocol Active</span>
+            <p class="text-xs text-slate-300 max-w-lg mx-auto">
+              ${proto === 'ssh' ? 'SSH operates over Port 22 using Diffie-Hellman key exchange for encrypted command execution.' : (proto === 'ftp' ? 'FTP uses Port 21 for commands and Port 20 for data streaming.' : 'SNMP polls device health via UDP 161 while traps arrive on 162.')}
+            </p>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function runProtocolAction() {
+      const log = document.getElementById('protoConsoleLog');
+      if (activeProtocol === 'http' || activeProtocol === 'https') {
+        const s1 = document.getElementById('tcpStep1');
+        const s2 = document.getElementById('tcpStep2');
+        const s3 = document.getElementById('tcpStep3');
+
+        s1.classList.add('border-cyan-400', 'bg-cyan-950/40');
+        log.innerHTML = `<div class="text-cyan-400">&gt; [STEP 1: SYN]: Client sends Synchronize packet with random Initial Sequence Number (ISN=100).</div>`;
+
+        setTimeout(() => {
+          s2.classList.add('border-purple-400', 'bg-purple-950/40');
+          log.innerHTML += `<div class="text-purple-400">&gt; [STEP 2: SYN-ACK]: Server responds with its own ISN (300) and Acknowledgement (101).</div>`;
+        }, 600);
+
+        setTimeout(() => {
+          s3.classList.add('border-emerald-400', 'bg-emerald-950/40');
+          log.innerHTML += `<div class="text-emerald-400">&gt; [STEP 3: ACK]: Client acknowledges server ISN (301). Connection ESTABLISHED! HTTP GET dispatched.</div>`;
+          setStatus("TCP Handshake complete! Data pipe ready.");
+        }, 1200);
+      } else if (activeProtocol === 'dns') {
+        const d1 = document.getElementById('dnsStep1');
+        const d2 = document.getElementById('dnsStep2');
+        const d3 = document.getElementById('dnsStep3');
+
+        d1.classList.add('border-purple-400', 'bg-purple-950/40');
+        log.innerHTML = `<div class="text-purple-300">&gt; 1. Root Name Server (.) queries TLD server for .com extension...</div>`;
+
+        setTimeout(() => {
+          d2.classList.add('border-cyan-400', 'bg-cyan-950/40');
+          log.innerHTML += `<div class="text-cyan-300">&gt; 2. .com TLD server refers resolver to Google Authoritative DNS (ns1.google.com)...</div>`;
+        }, 600);
+
+        setTimeout(() => {
+          d3.classList.add('border-emerald-400', 'bg-emerald-950/40');
+          log.innerHTML += `<div class="text-emerald-400">&gt; 3. Authoritative DNS returns A Record: google.com &rarr; 142.250.190.46 (TTL: 300s). Cached!</div>`;
+          setStatus("DNS resolution complete: 142.250.190.46");
+        }, 1200);
+      } else {
+        log.innerHTML = `<div class="text-amber-400">&gt; [${activeProtocol.toUpperCase()}] Handshake verified. Session encryption key negotiated.</div>`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // CLASSROOM QUIZ / KNOWLEDGE CHECK SYSTEM
+    // -------------------------------------------------------------
+    const topicQuizzes = {
+      0: {
+        q: "Which architectural network model treats every computing node as both a service consumer AND a service provider?",
+        options: ["Client-Server Model", "Peer-to-Peer (P2P)", "Master-Worker Hierarchy", "Token Ring"],
+        correct: 1,
+        explanation: "In Peer-to-Peer (P2P) systems (like BitTorrent or Bitcoin), every peer node can act as both a client and a server simultaneously."
+      },
+      1: {
+        q: "A network device receives a frame and blindly broadcasts it out of ALL its other ports. What device is this?",
+        options: ["Layer 2 Switch", "Hardware Router", "Hub (Layer 1)", "Modem"],
+        correct: 2,
+        explanation: "Hubs operate at Layer 1 and lack MAC learning capability, blindly repeating signals to all connected ports and creating a single shared collision domain."
+      },
+      2: {
+        q: "What is the typical geographic span of a Metropolitan Area Network (MAN)?",
+        options: ["Under 10 meters", "Inside one room", "An entire city or large campus (5 - 50 km)", "Intercontinental oceans"],
+        correct: 2,
+        explanation: "MANs span citywide areas (5 to 50 km), such as cable TV networks, municipal fiber loops, or interconnected university campuses."
+      },
+      3: {
+        q: "In which network topology does a single severed link in the main backbone bring down communication for ALL connected nodes?",
+        options: ["Full Mesh", "Star Topology", "Bus Topology", "Dual Tree"],
+        correct: 2,
+        explanation: "Bus topology relies on one central backbone cable with terminators at both ends. Any cut in that backbone disrupts the entire circuit."
+      },
+      4: {
+        q: "At which OSI Layer do IP addresses exist and path routing take place?",
+        options: ["Layer 2 (Data Link)", "Layer 3 (Network)", "Layer 4 (Transport)", "Layer 7 (Application)"],
+        correct: 1,
+        explanation: "Layer 3 (Network Layer) is home to IP addressing, subnets, routers, and logical path determination."
+      },
+      5: {
+        q: "How many total addressable bits make up a standard IPv6 address?",
+        options: ["32 bits", "64 bits", "128 bits", "256 bits"],
+        correct: 2,
+        explanation: "IPv6 uses 128-bit addresses (yielding ~3.4 x 10^38 addresses) compared to IPv4's 32-bit limit (~4.29 billion)."
+      },
+      6: {
+        q: "What is the correct chronological sequence of the DHCP DORA process?",
+        options: [
+          "Discover &rarr; Offer &rarr; Request &rarr; Acknowledge",
+          "Deliver &rarr; Obtain &rarr; Release &rarr; Allocate",
+          "Direct &rarr; Open &rarr; Route &rarr; Authorize",
+          "Discover &rarr; Request &rarr; Offer &rarr; Acknowledge"
+        ],
+        correct: 0,
+        explanation: "The DHCP sequence is Discover (broadcast search), Offer (server proposed IP), Request (client accepts), and Acknowledge (server locks lease)."
+      },
+      7: {
+        q: "What is the default subnet mask for a standard Class B IPv4 network address?",
+        options: ["255.0.0.0 (/8)", "255.255.0.0 (/16)", "255.255.255.0 (/24)", "255.255.255.255 (/32)"],
+        correct: 1,
+        explanation: "Class B default mask is 255.255.0.0 (/16), dividing the 32 bits into 16 network bits and 16 host bits (supporting 65,534 usable hosts)."
+      },
+      8: {
+        q: "Which well-known port is reserved for secure HTTPS web traffic?",
+        options: ["Port 21", "Port 22", "Port 80", "Port 443"],
+        correct: 3,
+        explanation: "Port 443 is universally dedicated to encrypted HTTPS (HTTP over TLS/SSL), whereas Port 80 is unencrypted HTTP."
+      }
+    };
+
+    function runQuickQuiz() {
+      const qData = topicQuizzes[currentSlideIndex];
+      if (!qData) return;
+
+      document.getElementById('quizQuestion').textContent = qData.q;
+      const opts = document.getElementById('quizOptions');
+      opts.innerHTML = qData.options.map((opt, i) => `
+        <button onclick="checkAnswer(${i})" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 hover:border-cyan-500 text-xs font-medium text-slate-200 transition flex items-center justify-between">
+          <span>${opt}</span>
+          <i data-lucide="circle" class="w-3.5 h-3.5 text-slate-500 shrink-0"></i>
+        </button>
+      `).join('');
+
+      const feedback = document.getElementById('quizFeedback');
+      feedback.className = "hidden p-3 rounded-lg text-xs font-mono";
+      feedback.textContent = "";
+
+      document.getElementById('quizModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function checkAnswer(selectedIndex) {
+      const qData = topicQuizzes[currentSlideIndex];
+      const feedback = document.getElementById('quizFeedback');
+      feedback.classList.remove('hidden');
+
+      if (selectedIndex === qData.correct) {
+        feedback.className = "p-3 rounded-xl text-xs font-mono bg-emerald-950/60 border border-emerald-500 text-emerald-300";
+        feedback.innerHTML = `&check; <strong>CORRECT!</strong> ${qData.explanation}`;
+        // Confetti celebration
+        try {
+          confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7 }
+          });
+        } catch(e) {}
+      } else {
+        feedback.className = "p-3 rounded-xl text-xs font-mono bg-rose-950/60 border border-rose-500 text-rose-300";
+        feedback.innerHTML = `&cross; <strong>NOT QUITE:</strong> ${qData.explanation}`;
+      }
+    }
+
+    function closeQuizModal() {
+      document.getElementById('quizModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
